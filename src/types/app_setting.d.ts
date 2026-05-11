@@ -124,6 +124,11 @@ declare global {
       'theme.fontShadow': boolean
 
       /**
+       * 启用现代 UI(v2 视觉)— 渐进重构 Feature Flag,关闭时回退到经典视觉
+       */
+      'theme.useModernUI': boolean
+
+      /**
        * 启动时自动播放歌曲
        */
       'player.startupAutoPlay': boolean

@@ -297,6 +297,7 @@
   "setting_basic_theme_dynamic_bg": "使用動態背景",
   "setting_basic_theme_font_shadow": "啟用字體陰影",
   "setting_basic_theme_hide_bg_dark": "隱藏黑色主題背景",
+  "setting_basic_theme_modern_ui": "啟用現代 UI(v2 視覺,實驗中)",
   "setting_basic_theme_more_btn_show": "更多主題",
   "setting_basic_use_system_file_selector": "使用系統檔案選取器",
   "setting_basic_use_system_file_selector_tip": "啟用該選項後，匯入備份檔案、自訂來源 API 等操作將不需要申請儲存權限，但可能在某些系統上不可用。\n\n若啟用該選項後無法匯入檔案，則可關閉該選項，回退到軟體內建檔案選取器。",
