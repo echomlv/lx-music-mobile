@@ -93,6 +93,7 @@
     "typescript": "^5.9.3"
   },
   "overrides": {
+    "react-native": "0.73.11",
     "@react-native-community/cli-platform-android": {
       "fast-xml-parser": "^5.3.4"
     },
