@@ -181,7 +181,8 @@ const ProgressStrip = memo(({ autoUpdate }: { autoUpdate: boolean }) => {
   const allowProgressBarSeek = useSettingValue('common.allowProgressBarSeek')
 
   return (
-    <View style={styles.progressWrap}>
+    // 【关键修改】：加上 marginBottom: 16 (数值可以根据你的感觉微调，12~20之间都不错)
+    <View style={[styles.progressWrap, { marginBottom: 16 }]}>
       {allowProgressBarSeek
         ? <Progress progress={progress} duration={maxPlayTime} buffered={buffered} paddingTop={PROGRESS_PADDING_TOP} />
         : <ProgressPlain progress={progress} duration={maxPlayTime} buffered={buffered} paddingTop={PROGRESS_PADDING_TOP} />}
