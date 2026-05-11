@@ -34,8 +34,7 @@ const MenuRow = memo(({ id, icon, onPress }: {
       onPress={() => { onPress(id) }}
       disabled={isActive}
       style={{
-        flexDirection: 'row',
-        alignItems: 'center',
+        // 把原本这里的 flexDirection 和 alignItems 移到内层 View 去
         paddingHorizontal: tokens.spacing.md,
         paddingVertical: tokens.spacing.md,
         borderRadius: tokens.radius.lg,
@@ -43,17 +42,26 @@ const MenuRow = memo(({ id, icon, onPress }: {
         marginBottom: tokens.spacing.xs,
       }}
     >
-      <View style={{ width: 28, alignItems: 'center' }}>
-        <Icon name={icon} size={18} color={iconColor} />
+      {/* 【关键新增】：加一层原生 View 来接管真正的布局 */}
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+
+        <View style={{ width: 28, alignItems: 'center' }}>
+          <Icon name={icon} size={18} color={iconColor} />
+        </View>
+
+        <Typography
+          variant="body"
+          color={textColor}
+          weight={isActive ? '600' : '400'}
+          style={{
+            marginLeft: tokens.spacing.sm, // 原来是 md，因为侧边栏变窄了，建议改成 sm 稍微紧凑一点
+            flexShrink: 1, // 加上这个，防止文字过长把布局撑破
+          }}
+        >
+          {t(id)}
+        </Typography>
+
       </View>
-      <Typography
-        variant="body"
-        color={textColor}
-        weight={isActive ? '600' : '400'}
-        style={{ marginLeft: tokens.spacing.md }}
-      >
-        {t(id)}
-      </Typography>
     </V2Pressable>
   )
 })
