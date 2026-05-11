@@ -170,8 +170,10 @@ const Actions = memo(() => {
 })
 Actions.displayName = 'v2.PlayerBar.Actions'
 
-const PROGRESS_STRIP_HEIGHT = 14
-const PROGRESS_PADDING_TOP = 11
+// 命中区域 28px(足够手指点击);可视部分由 paddingTop 控制,留 4px 细条贴底。
+// 原本 14/11 → 可视 3px、命中 14px,贴在屏幕底部时不易点中。
+const PROGRESS_STRIP_HEIGHT = 28
+const PROGRESS_PADDING_TOP = 24
 
 const ProgressStrip = memo(({ autoUpdate }: { autoUpdate: boolean }) => {
   const { progress, maxPlayTime } = useProgress(autoUpdate)
