@@ -7,12 +7,11 @@ import commonState, { type InitState as CommonState } from '@/store/common/state
 import settingState from '@/store/setting/state'
 import { createStyle } from '@/utils/tools'
 
-import Leaderboard from '@/screens/Home/Views/Leaderboard'
-import Setting from '@/screens/Home/Views/Setting'
-
 import Search from '@/screens/v2/Home/Views/Search'
 import SongList from '@/screens/v2/Home/Views/SongList'
 import Mylist from '@/screens/v2/Home/Views/Mylist'
+import Leaderboard from '@/screens/v2/Home/Views/Leaderboard'
+import Setting from '@/screens/v2/Home/Views/Setting'
 
 /**
  * v2 Main:与 v1 共用 PagerView + 懒挂载策略,搜索页切换为 SearchV2,
