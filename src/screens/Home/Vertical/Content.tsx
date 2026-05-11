@@ -7,12 +7,14 @@ import { useSettingValue } from '@/store/setting/hook'
 import { COMPONENT_IDS } from '@/config/constant'
 import DrawerLayoutFixed, { type DrawerLayoutFixedType } from '@/components/common/DrawerLayoutFixed'
 import { scaleSizeW } from '@/utils/pixelRatio'
+import { DrawerNavV2 } from '@/components/v2/organisms'
 
 const MAX_WIDTH = scaleSizeW(300)
 
 const Content = () => {
   const drawer = useRef<DrawerLayoutFixedType>(null)
   const drawerLayoutPosition = useSettingValue('common.drawerLayoutPosition')
+  const useModernUI = useSettingValue('theme.useModernUI')
 
   useEffect(() => {
     const changeVisible = (visible: boolean) => {
@@ -30,7 +32,7 @@ const Content = () => {
     }
   }, [])
 
-  const navigationView = () => <DrawerNav />
+  const navigationView = () => (useModernUI ? <DrawerNavV2 /> : <DrawerNav />)
   // console.log('render drawer content')
 
   return (

@@ -47,21 +47,27 @@ src/components/v2/
 - `babel.config.js` 加入 `react-native-reanimated/plugin`
 - `atoms/Surface.tsx` 改为静态 import 真实 BlurView,blur/glass variant 现在显示原生毛玻璃
 
-### ✅ 阶段 2(本次,已完成)
+### ✅ 阶段 2(已完成)
 **PlayerBar v2**
 - `organisms/PlayerBarV2.tsx` — 毛玻璃背板 + 56×56 大封面 + 双行文本 + 三按钮
 - 复用现有 `Progress`/`ProgressPlain` 手势逻辑,完全保留 seek 与 long-press jump
 - shared element nativeID(`NAV_SHEAR_NATIVE_IDS.playDetail_pic`)保留,封面进 PlayDetail 仍走 shared element 转场
 - 横屏自动显示 prev 按钮(与旧版行为一致)
+- 接入点: `src/components/player/PlayerBar/index.tsx` 加 Feature Flag 分支 → 一次覆盖 Home(竖+横)+ SonglistDetail 三处
 
-**接入**
-- `src/components/player/PlayerBar/index.tsx` 加 Feature Flag 分支:`useModernUI` 时返回 `PlayerBarV2`,否则保持旧版。Home(竖+横屏)+ SonglistDetail 三个挂载点同时切换。
+**StatusBar v2**
+- `atoms/StatusBar.tsx` — `style: 'auto' | 'light' | 'dark'`,沉浸式 translucent + 主题自适应
+- 旧 `common/StatusBar.tsx` **不动**(行为已经够好);v2 screens(后续 PlayDetail 大封面沉浸式)需要强制白字时才用 v2 atom
+
+**DrawerNav v2**
+- `organisms/DrawerNavV2.tsx` — 毛玻璃顶部 Logo 卡 + 圆角 pill 菜单行 + 激活项 primary 背景
+- 接入点: `src/screens/Home/Vertical/Content.tsx` 在 `navigationView` 处按 Flag 切换;DrawerLayoutFixed 手势层完全复用
 
 **Showcase**
-- 「v2 视觉预览」最后一节展示 PlayerBarV2 当前播放状态。
+- 「v2 视觉预览」追加 PlayerBar v2 实时预览节
 
 ### ⏭️ 阶段 3 起
-全局元素 v2(StatusBar / AppBar / Drawer),然后主屏 / PlayDetail / SonglistDetail / Comment 屏幕级换肤。
+主屏 v2(Home 竖+横屏:Search / SongList / Mylist / Leaderboard / Setting 5 tab 视觉换肤,卡片化列表),然后 PlayDetail 沉浸式封面 → SonglistDetail / Comment 收尾。
 
 ## 写组件的硬约束
 

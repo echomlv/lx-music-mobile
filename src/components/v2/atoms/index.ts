@@ -18,3 +18,6 @@ export type { AppBarProps } from './AppBar'
 
 export { Typography } from './Typography'
 export type { TypographyProps, TypographyVariant } from './Typography'
+
+export { StatusBarV2 } from './StatusBar'
+export type { StatusBarV2Props, StatusBarStyle } from './StatusBar'

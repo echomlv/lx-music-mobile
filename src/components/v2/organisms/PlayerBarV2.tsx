@@ -171,7 +171,7 @@ const Actions = memo(() => {
 Actions.displayName = 'v2.PlayerBar.Actions'
 
 const PROGRESS_STRIP_HEIGHT = 14
-const PROGRESS_PADDING_TOP = 11  // 视觉条 3px,留 11px 透明触控区在上方
+const PROGRESS_PADDING_TOP = 11
 
 const ProgressStrip = memo(({ autoUpdate }: { autoUpdate: boolean }) => {
   const { progress, maxPlayTime } = useProgress(autoUpdate)
