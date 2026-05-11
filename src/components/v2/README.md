@@ -8,48 +8,97 @@
 
 ```
 src/components/v2/
-├── atoms/        # 最小可复用单元(Surface / Card / Pressable / IconButton / PillButton...)
-├── molecules/    # 由 atoms 组装的中等组件(ListRow / SearchBar / SectionHeader...)
-├── organisms/    # 屏幕级组合(PlayerBarV2 / AppBar / DrawerNavV2...)
+├── atoms/         # 最小可复用单元
+├── molecules/     # 由 atoms 组装的中等组件
+├── organisms/     # 屏幕级组合
 └── README.md
 ```
 
 对应的:
-- `src/theme/v2/` — 设计令牌(spacing / radius / elevation / motion / blur) + `useDesignTokens()` hook
-- `src/screens/v2/` — 新视觉屏幕,与 `src/screens/{Home,PlayDetail,...}` 并存
+- `src/theme/v2/` — 设计令牌 + `useDesignTokens()` hook
+- `src/screens/v2/` — 新视觉屏幕(暂空)
 
-## 何时使用 v2
+## 阶段进度
 
-旧屏幕入口在 render 时根据 `setting['theme.useModernUI']` 分支:
+### ✅ 阶段 0(已完成)
+- v2 目录脚手架
+- `theme/v2/tokens.ts` — spacing / radius / elevation / motion / blur / typography
+- `theme/v2/useDesignTokens.ts` — useMemo 化的设计系统 hook
+- Feature Flag `theme.useModernUI`(默认 false)+ 设置屏开关 + i18n
 
-```tsx
-// 例:src/screens/Home/index.tsx 改造示意
-const useModernUI = useSettingValue('theme.useModernUI')
-return useModernUI
-  ? <HomeV2 {...props} />
-  : <HomeLegacy {...props} />
-```
+### ✅ 阶段 1.1(本次,已完成)
+**原子组件**
+- `atoms/Surface` — solid / blur / glass 三种 variant;BlurView 未安装时自动降级为半透明 View
+- `atoms/Card` — Surface preset:圆角 16 / 微阴影 / padding=16
+- `atoms/Pressable` — 按下缩放 + overlay 反馈,UI 线程动画
+- `atoms/IconButton` — 圆形/圆角图标按钮,三种背景档位
+- `atoms/PillButton` — pill 形按钮,3 种 variant × 3 种 size
+- `atoms/AppBar` — 自绘顶部栏,支持半透明毛玻璃模式
+- `atoms/Typography` — 语义化字号(display/title/subtitle/body/label/caption)
 
-**默认 Flag = false**,直到阶段 5 完成 QA 才翻转为 true(详见实施计划文档)。
+**预览页**
+- `organisms/V2Showcase` — 开发态可视化预览页,列出所有 atoms 的所有状态
+
+**接入点**
+- 设置 → 主题 → 勾选「启用现代 UI」后,出现「预览 v2 组件」按钮 → 全屏 Modal 展示 Showcase
+
+### ✅ 阶段 1.2(已完成)
+- `@react-native-community/blur@4.4.1` + `react-native-reanimated@3.6.3` 已装
+- `babel.config.js` 加入 `react-native-reanimated/plugin`
+- `atoms/Surface.tsx` 改为静态 import 真实 BlurView,blur/glass variant 现在显示原生毛玻璃
+
+### ✅ 阶段 2(本次,已完成)
+**PlayerBar v2**
+- `organisms/PlayerBarV2.tsx` — 毛玻璃背板 + 56×56 大封面 + 双行文本 + 三按钮
+- 复用现有 `Progress`/`ProgressPlain` 手势逻辑,完全保留 seek 与 long-press jump
+- shared element nativeID(`NAV_SHEAR_NATIVE_IDS.playDetail_pic`)保留,封面进 PlayDetail 仍走 shared element 转场
+- 横屏自动显示 prev 按钮(与旧版行为一致)
+
+**接入**
+- `src/components/player/PlayerBar/index.tsx` 加 Feature Flag 分支:`useModernUI` 时返回 `PlayerBarV2`,否则保持旧版。Home(竖+横屏)+ SonglistDetail 三个挂载点同时切换。
+
+**Showcase**
+- 「v2 视觉预览」最后一节展示 PlayerBarV2 当前播放状态。
+
+### ⏭️ 阶段 3 起
+全局元素 v2(StatusBar / AppBar / Drawer),然后主屏 / PlayDetail / SonglistDetail / Comment 屏幕级换肤。
 
 ## 写组件的硬约束
 
-1. **不导入 `src/components/common/*`(旧 v1)**,避免混用造成视觉断层。需要复用基础能力时:
-   - 文字 → 自写或包装 RN `<Text>`,从 `useDesignTokens().colors` 取色
-   - 图标 → 复用 `src/components/common/Icon.tsx`(icomoon 字体,无视觉负担)
-   - 复杂手势(如 ProgressBar 拖拽)→ 复用旧文件的逻辑层,只换 UI 包装层
-2. **样式必须走 token**:`tokens.spacing.lg`、`tokens.radius.md`、`tokens.elevation.md`,不要硬编码 px。
+1. **不导入 `src/components/common/*`(旧 v1)**,以保持视觉一致性。例外:可复用 `Icon.tsx`(icomoon 字体,无视觉负担)。
+2. **样式走 token**:`tokens.spacing.lg`、`tokens.radius.md`、`tokens.elevation.md`,不硬编码 px。
 3. **颜色继续走旧主题** `colors['c-primary']` 等,保证 13 个主题包都能切换。
-4. **动效优先用 `react-native-reanimated@3`**,UI 线程跑;过渡时长读 `tokens.motion.duration.*`。
-5. **iOS 优先**: 平台分支用 `.ios.tsx` 与 `.android.tsx`(babel module-resolver 已配)。BlurView 在 Android 上自动降级,见 `atoms/Surface`。
+4. **动效优先用 `react-native-reanimated@3`**(安装后);当前阶段用 RN 自带 `Animated` 兜底。
+5. **iOS 优先**: 平台分支用 `.ios.tsx` 与 `.android.tsx`。BlurView 在 Android 自动降级。
 
-## 测试与回退
+## 安装新依赖(阶段 1 收尾)
 
-切换设置开关「启用现代 UI」可实时在新旧 UI 间切换。如发现新视觉破坏功能,关闭开关即可立刻退回旧 UI,不影响播放/锁屏/同步等核心管线。
+```bash
+# 进入仓库根目录
+npm install @react-native-community/blur react-native-reanimated@~3.6.0 --save-exact
 
-## 当前进度(对应实施计划阶段 0)
+# 确认现有 react-native@0.73.11 仍被锁住(之前修复过的 overrides 仍生效)
+npm ls react-native | grep -E "react-native@"
 
-- [x] 目录脚手架
-- [x] `theme/v2/tokens.ts` + `useDesignTokens()` hook
-- [x] `theme.useModernUI` 设置项 + 设置屏开关 + i18n(zh-cn / zh-tw / en-us)
-- [ ] 阶段 1 起:`atoms/Surface`、`atoms/Card`、`atoms/AppBar` 等
+# 装好后修改 babel.config.js,把 'react-native-reanimated/plugin' 放到 plugins 数组最后一项
+
+# iOS 原生
+cd ios && pod install && cd ..
+
+# 重新编译
+npm run ios
+```
+
+### 安装后验证清单(必须跑完)
+1. 启动 App → 主屏正常 → boot log 无新错误
+2. 播放 MP3 → 锁屏元数据正常
+3. 播放 FLAC(原生流式) → 进度同步、暂停/恢复
+4. 切歌、上下首、随机模式
+5. 拔耳机自动暂停 → 戴上不自动恢复
+6. 来电中断后恢复播放
+7. 同步:开启 sync,扫码连服务器
+8. 进入 设置 → 主题 → 勾选「启用现代 UI」→ 点「预览 v2 组件」
+   - Surface `blur` / `glass` variant 应该看到**真实毛玻璃**(而不再是色块)
+   - PillButton 按下应该有平滑缩放与 overlay 反馈
+
+任何一项异常都先关闭 `theme.useModernUI` 回退,然后排查;不要直接回滚代码。

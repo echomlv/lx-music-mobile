@@ -32,5 +32,7 @@ module.exports = {
         },
       },
     ],
+    // Must be listed LAST per react-native-reanimated docs
+    'react-native-reanimated/plugin',
   ],
 }

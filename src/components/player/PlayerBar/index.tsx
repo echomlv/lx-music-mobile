@@ -10,6 +10,7 @@ import { createStyle } from '@/utils/tools'
 // import { useSettingValue } from '@/store/setting/hook'
 import { useTheme } from '@/store/theme/hook'
 import { useSettingValue } from '@/store/setting/hook'
+import { PlayerBarV2 } from '@/components/v2/organisms/PlayerBarV2'
 
 
 export default memo(({ isHome = false }: { isHome?: boolean }) => {
@@ -17,6 +18,7 @@ export default memo(({ isHome = false }: { isHome?: boolean }) => {
   const { keyboardShown } = useKeyboard()
   const theme = useTheme()
   const autoHidePlayBar = useSettingValue('common.autoHidePlayBar')
+  const useModernUI = useSettingValue('theme.useModernUI')
 
   const playerComponent = useMemo(() => (
     <View style={{ ...styles.container, backgroundColor: theme['c-content-background'] }}>
@@ -34,9 +36,9 @@ export default memo(({ isHome = false }: { isHome?: boolean }) => {
     </View>
   ), [theme, isHome])
 
-  // console.log('render pb')
-
-  return autoHidePlayBar && keyboardShown ? null : playerComponent
+  if (autoHidePlayBar && keyboardShown) return null
+  if (useModernUI) return <PlayerBarV2 isHome={isHome} />
+  return playerComponent
 })
 
 
