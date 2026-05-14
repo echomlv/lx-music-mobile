@@ -72,15 +72,14 @@ export default forwardRef<HeaderBarType, HeaderBarProps>(({ onShowBound, onSourc
           borderRadius: tokens.radius.pill,
           borderWidth: 1,
           borderColor: colors['c-border-background'],
-          overflow: 'hidden', // 确保内容不超出圆角
+          overflow: 'hidden',
         }}
       >
-        {/* 关键：在这里嵌套一个 View 来实现真正的横向布局 */}
         <View
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'center', // 如果你想让文字和图标整体居中
+            justifyContent: 'center',
             height: '100%',
             width: '100%',
             paddingHorizontal: tokens.spacing.md,
@@ -91,10 +90,7 @@ export default forwardRef<HeaderBarType, HeaderBarProps>(({ onShowBound, onSourc
             variant="label"
             weight="500"
             numberOfLines={1}
-            style={{
-              // 不要用 flex: 1，用 flexShrink 保证图标紧跟文字
-              flexShrink: 1,
-            }}
+            style={{ flexShrink: 1 }}
           >
             {activeName}
           </Typography>

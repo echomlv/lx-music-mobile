@@ -1,4 +1,4 @@
-import { memo, useRef } from 'react'
+import { memo, useRef, type ReactNode } from 'react'
 import { Animated, Pressable as RNPressable, type PressableProps, type StyleProp, type ViewStyle } from 'react-native'
 import { useDesignTokens } from '@/theme/v2'
 
@@ -8,7 +8,9 @@ export interface V2PressableProps extends Omit<PressableProps, 'style' | 'childr
   pressScale?: number
   /** 按下时叠加的 overlay 透明度(0~1),默认 0.06 */
   pressOverlay?: number
-  children?: PressableProps['children']
+  // 收窄为 ReactNode:V2Pressable 自带 overlay 节点拼在 children 后面,
+  // RN Pressable 原生的 render-prop 形式与之冲突,这里只允许静态子节点。
+  children?: ReactNode
 }
 
 /**

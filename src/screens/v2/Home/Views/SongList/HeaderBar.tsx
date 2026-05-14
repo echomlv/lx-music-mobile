@@ -171,6 +171,7 @@ const TagChip = forwardRef<TagChipType, { onTagChange: (name: string, id: string
   }))
 
   const display = name || t('songlist_tag_default')
+  const selected = !!name
 
   const handleShow = () => {
     global.app_event.showSonglistTagList(infoRef.current.source, infoRef.current.activeId)
@@ -184,13 +185,21 @@ const TagChip = forwardRef<TagChipType, { onTagChange: (name: string, id: string
         paddingHorizontal: tokens.spacing.md,
         borderRadius: tokens.radius.pill,
         borderWidth: 1,
-        borderColor: colors['c-border-background'],
+        borderColor: selected ? colors['c-primary'] : colors['c-border-background'],
+        backgroundColor: selected ? colors['c-primary-light-200-alpha-700'] : 'transparent',
         flexDirection: 'row',
         alignItems: 'center',
         gap: tokens.spacing.xxs,
       }}
     >
-      <Typography variant="label" weight="500" numberOfLines={1}>{display}</Typography>
+      <Typography
+        variant="label"
+        weight="500"
+        numberOfLines={1}
+        color={selected ? colors['c-primary'] : undefined}
+      >
+        {display}
+      </Typography>
     </V2Pressable>
   )
 })

@@ -8,7 +8,7 @@ import { DrawerNavV2 } from '@/components/v2/organisms'
 import Header from './Header'
 import Main from './Main'
 
-const MAX_WIDTH = scaleSizeW(180)   //建议把 300 缩小到 180 到 200 之间
+const MAX_WIDTH = scaleSizeW(180)
 
 const Content = () => {
   const drawer = useRef<DrawerLayoutFixedType>(null)
@@ -30,7 +30,7 @@ const Content = () => {
   return (
     <DrawerLayoutFixed
       ref={drawer}
-      widthPercentage={0.55}   // 调低到 50% ~ 55% 左右，视觉上会更紧凑
+      widthPercentage={0.55}
       widthPercentageMax={MAX_WIDTH}
       visibleNavNames={[COMPONENT_IDS.home]}
       drawerPosition={drawerLayoutPosition}

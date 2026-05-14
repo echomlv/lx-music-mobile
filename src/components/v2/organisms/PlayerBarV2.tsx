@@ -171,9 +171,10 @@ const Actions = memo(() => {
 Actions.displayName = 'v2.PlayerBar.Actions'
 
 // 命中区域 28px(足够手指点击);可视部分由 paddingTop 控制,留 4px 细条贴底。
-// 原本 14/11 → 可视 3px、命中 14px,贴在屏幕底部时不易点中。
+// marginBottom 让进度条上抬,避开 iPhone 底部 home indicator 手势区。
 const PROGRESS_STRIP_HEIGHT = 28
 const PROGRESS_PADDING_TOP = 24
+const PROGRESS_STRIP_BOTTOM_OFFSET = 16
 
 const ProgressStrip = memo(({ autoUpdate }: { autoUpdate: boolean }) => {
   const { progress, maxPlayTime } = useProgress(autoUpdate)
@@ -181,8 +182,7 @@ const ProgressStrip = memo(({ autoUpdate }: { autoUpdate: boolean }) => {
   const allowProgressBarSeek = useSettingValue('common.allowProgressBarSeek')
 
   return (
-    // 【关键修改】：加上 marginBottom: 16 (数值可以根据你的感觉微调，12~20之间都不错)
-    <View style={[styles.progressWrap, { marginBottom: 16 }]}>
+    <View style={styles.progressWrap}>
       {allowProgressBarSeek
         ? <Progress progress={progress} duration={maxPlayTime} buffered={buffered} paddingTop={PROGRESS_PADDING_TOP} />
         : <ProgressPlain progress={progress} duration={maxPlayTime} buffered={buffered} paddingTop={PROGRESS_PADDING_TOP} />}
@@ -246,5 +246,6 @@ const styles = StyleSheet.create({
   progressWrap: {
     height: PROGRESS_STRIP_HEIGHT,
     width: '100%',
+    marginBottom: PROGRESS_STRIP_BOTTOM_OFFSET,
   },
 })
