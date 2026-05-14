@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 
 import { useDesignTokens } from '@/theme/v2'
+import { useHorizontalMode } from '@/utils/hooks'
 import { usePlayerMusicInfo } from '@/store/player/hook'
 import { isBlurAvailable } from '@/components/v2/atoms'
 import Image from '@/components/common/Image'
@@ -24,6 +25,7 @@ if (isBlurAvailable()) {
 export default memo(() => {
   const { colors } = useDesignTokens()
   const musicInfo = usePlayerMusicInfo()
+  const isHorizontal = useHorizontalMode()
   const bg = colors['c-content-background']
 
   return (
@@ -35,11 +37,15 @@ export default memo(() => {
         ? <BlurView style={StyleSheet.absoluteFillObject} blurType="regular" blurAmount={50} reducedTransparencyFallbackColor={bg} />
         : <View style={[StyleSheet.absoluteFillObject, { backgroundColor: bg, opacity: 0.85 }]} />}
       <View style={[StyleSheet.absoluteFillObject, { backgroundColor: bg, opacity: 0.55 }]} />
-      <LinearGradient
-        colors={[bg, 'transparent', 'transparent', bg]}
-        locations={[0, 0.25, 0.75, 1]}
-        style={StyleSheet.absoluteFillObject}
-      />
+      {isHorizontal
+        ? null
+        : (
+            <LinearGradient
+              colors={[bg, 'transparent', 'transparent', bg]}
+              locations={[0, 0.25, 0.75, 1]}
+              style={StyleSheet.absoluteFillObject}
+            />
+          )}
     </View>
   )
 })

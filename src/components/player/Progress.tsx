@@ -74,9 +74,7 @@ export const ProgressPlain = ({ progress, duration, buffered, paddingTop }: {
   buffered: number
   paddingTop?: number
 }) => {
-  // const { progress } = usePlayTimeBuffer()
   const theme = useTheme()
-  // console.log(progress)
   const progressStr: `${number}%` = `${progress * 100}%`
 
   const durationRef = useRef(duration)
@@ -84,9 +82,11 @@ export const ProgressPlain = ({ progress, duration, buffered, paddingTop }: {
     durationRef.current = duration
   }, [duration])
 
+  // paddingTop 只缩小内层"可视 bar"的占位;外层 wrapper 与 PreassBar 一直按全高布局,
+  // 这样既能把进度条画成细线,触控/拖动区仍是整个容器。
   return (
-    <View style={{ ...styles.progress, paddingTop }}>
-      <View style={{ flex: 1 }}>
+    <View style={styles.progress}>
+      <View style={{ flex: 1, paddingTop }}>
         <DefaultBar />
         <BufferedBar progress={buffered} />
         <View style={{ ...styles.progressBar, backgroundColor: theme['c-primary-alpha-900'], width: progressStr, position: 'absolute', left: 0, top: 0 }} />
@@ -102,11 +102,9 @@ const Progress = ({ progress, duration, buffered, paddingTop }: {
   buffered: number
   paddingTop?: number
 }) => {
-  // const { progress } = usePlayTimeBuffer()
   const theme = useTheme()
   const [draging, setDraging] = useState(false)
   const [dragProgress, setDragProgress] = useState(0)
-  // console.log(progress)
   const progressStr: `${number}%` = `${progress * 100}%`
 
   const durationRef = useRef(duration)
@@ -118,9 +116,11 @@ const Progress = ({ progress, duration, buffered, paddingTop }: {
     global.app_event.setProgress(progress * durationRef.current)
   }, [])
 
+  // paddingTop 只缩小内层"可视 bar"的占位;外层 wrapper 与 PreassBar 一直按全高布局,
+  // 这样既能把进度条画成细线,触控/拖动区仍是整个容器。
   return (
-    <View style={{ ...styles.progress, paddingTop }}>
-      <View style={{ flex: 1 }}>
+    <View style={styles.progress}>
+      <View style={{ flex: 1, paddingTop }}>
         <DefaultBar />
         <BufferedBar progress={buffered} />
         {
@@ -136,7 +136,6 @@ const Progress = ({ progress, duration, buffered, paddingTop }: {
         }
       </View>
       <PreassBar onDragState={setDraging} setDragProgress={setDragProgress} onSetProgress={onSetProgress} />
-      {/* <View style={{ ...styles.progressBar, height: '100%', width: progressStr }}><Pressable style={styles.progressDot}></Pressable></View> */}
     </View>
   )
 }
