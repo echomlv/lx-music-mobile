@@ -34,33 +34,29 @@ const MenuRow = memo(({ id, icon, onPress }: {
       onPress={() => { onPress(id) }}
       disabled={isActive}
       style={{
-        // 把原本这里的 flexDirection 和 alignItems 移到内层 View 去
-        paddingHorizontal: tokens.spacing.md,
-        paddingVertical: tokens.spacing.md,
-        borderRadius: tokens.radius.lg,
+        paddingHorizontal: tokens.spacing.sm,
+        paddingVertical: tokens.spacing.sm,
+        borderRadius: tokens.radius.md,
         backgroundColor: bg,
-        marginBottom: tokens.spacing.xs,
+        marginBottom: 2,
       }}
     >
-      {/* 【关键新增】：加一层原生 View 来接管真正的布局 */}
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-
-        <View style={{ width: 28, alignItems: 'center' }}>
-          <Icon name={icon} size={18} color={iconColor} />
+        <View style={{ width: 24, alignItems: 'center' }}>
+          <Icon name={icon} size={16} color={iconColor} />
         </View>
-
         <Typography
-          variant="body"
+          variant="label"
           color={textColor}
-          weight={isActive ? '600' : '400'}
+          weight={isActive ? '600' : '500'}
+          numberOfLines={1}
           style={{
-            marginLeft: tokens.spacing.sm, // 原来是 md，因为侧边栏变窄了，建议改成 sm 稍微紧凑一点
-            flexShrink: 1, // 加上这个，防止文字过长把布局撑破
+            marginLeft: tokens.spacing.sm,
+            flexShrink: 1,
           }}
         >
           {t(id)}
         </Typography>
-
       </View>
     </V2Pressable>
   )
@@ -77,33 +73,33 @@ const HeaderCard = memo(() => {
       radius="none"
       elevation="none"
       style={{
-        paddingTop: statusBarHeight + tokens.spacing.xl,
-        paddingBottom: tokens.spacing.xl,
-        paddingHorizontal: tokens.spacing.lg,
-        borderBottomLeftRadius: tokens.radius.xl,
-        borderBottomRightRadius: tokens.radius.xl,
+        paddingTop: statusBarHeight + tokens.spacing.md,
+        paddingBottom: tokens.spacing.md,
+        paddingHorizontal: tokens.spacing.md,
+        borderBottomLeftRadius: tokens.radius.lg,
+        borderBottomRightRadius: tokens.radius.lg,
         overflow: 'hidden',
-        marginBottom: tokens.spacing.md,
+        marginBottom: tokens.spacing.sm,
       }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.md }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.sm }}>
         <Surface
           variant="solid"
-          radius="lg"
+          radius="md"
           elevation="sm"
           backgroundColor={colors['c-primary-light-200-alpha-500']}
           style={{
-            width: 48,
-            height: 48,
+            width: 36,
+            height: 36,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Icon name="logo" color={colors['c-primary']} size={24} />
+          <Icon name="logo" color={colors['c-primary']} size={18} />
         </Surface>
         <View style={{ flex: 1 }}>
-          <Typography variant="title" weight="700">LX Music</Typography>
-          <Typography variant="caption" color={colors['c-font-label']}>
+          <Typography variant="body" weight="700" numberOfLines={1}>LX Music</Typography>
+          <Typography variant="caption" color={colors['c-font-label']} numberOfLines={1}>
             洛雪音乐 · iOS
           </Typography>
         </View>
@@ -144,8 +140,8 @@ export const DrawerNavV2 = memo(() => {
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingHorizontal: tokens.spacing.md,
-          paddingBottom: tokens.spacing.lg,
+          paddingHorizontal: tokens.spacing.sm,
+          paddingBottom: tokens.spacing.md,
         }}
       >
         {NAV_MENUS.map(menu => (
@@ -157,9 +153,9 @@ export const DrawerNavV2 = memo(() => {
         ? (
             <View
               style={{
-                paddingHorizontal: tokens.spacing.md,
-                paddingTop: tokens.spacing.sm,
-                paddingBottom: tokens.spacing.lg,
+                paddingHorizontal: tokens.spacing.sm,
+                paddingTop: tokens.spacing.xs,
+                paddingBottom: tokens.spacing.md,
                 borderTopWidth: 1,
                 borderTopColor: colors['c-border-background'],
               }}
