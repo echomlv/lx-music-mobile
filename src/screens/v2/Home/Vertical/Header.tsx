@@ -30,8 +30,8 @@ const Header = memo(() => {
   const menuBtn = (
     <IconButton
       name="menu"
-      size={18}
-      hitSize={HEADER_HEIGHT}
+      size={20}
+      hitSize={48}
       radius="md"
       onPress={openMenu}
       accessibilityLabel="menu"
@@ -58,7 +58,7 @@ const Header = memo(() => {
           style={{
             paddingTop: statusBarHeight,
             height: scaleSizeH(HEADER_HEIGHT) + statusBarHeight,
-            paddingHorizontal: tokens.spacing.xs,
+            paddingHorizontal: tokens.spacing.sm,
             flexDirection: 'row',
             alignItems: 'center',
           }}

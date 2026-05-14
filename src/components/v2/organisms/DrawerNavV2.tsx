@@ -34,24 +34,24 @@ const MenuRow = memo(({ id, icon, onPress }: {
       onPress={() => { onPress(id) }}
       disabled={isActive}
       style={{
-        paddingHorizontal: tokens.spacing.sm,
-        paddingVertical: tokens.spacing.sm,
+        paddingHorizontal: tokens.spacing.md,
+        paddingVertical: tokens.spacing.md,
         borderRadius: tokens.radius.md,
         backgroundColor: bg,
-        marginBottom: 2,
+        marginBottom: tokens.spacing.xs,
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <View style={{ width: 24, alignItems: 'center' }}>
-          <Icon name={icon} size={16} color={iconColor} />
+        <View style={{ width: 28, alignItems: 'center' }}>
+          <Icon name={icon} size={20} color={iconColor} />
         </View>
         <Typography
-          variant="label"
+          variant="body"
           color={textColor}
           weight={isActive ? '600' : '500'}
           numberOfLines={1}
           style={{
-            marginLeft: tokens.spacing.sm,
+            marginLeft: tokens.spacing.md,
             flexShrink: 1,
           }}
         >
