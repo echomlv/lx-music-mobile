@@ -3,11 +3,27 @@ import { temporaryDirectoryPath, existsFile, appendFile, unlink, writeFile, read
 
 const logPath = temporaryDirectoryPath + '/error.log'
 
+// 把开发机/构建机的本机绝对路径脱敏,仅保留项目内相对路径。
+// /Users/xxx/.../lx-music-mobile(-ios)?/...        → ...
+// 其它残留的 /Users/xxx/...                          → ~/...
+// file:// 前缀 与 Metro http://localhost:8081/... 前缀同样裁掉
+const PROJECT_ROOT_RE = /(?:file:\/\/)?\/[^\s)'"]*?\/lx-music-mobile(?:-ios)?\//g
+const USER_HOME_RE = /\/Users\/[^/\s)'"]+\//g
+const METRO_BUNDLE_RE = /https?:\/\/[^/\s)'"]+:\d+\//g
+
+export const scrubPaths = (msg: string): string => {
+  return msg
+    .replace(PROJECT_ROOT_RE, '')
+    .replace(METRO_BUNDLE_RE, '')
+    .replace(USER_HOME_RE, '~/')
+}
+
 const logTools = {
   tempLog: [] as Array<{ time: string, type: 'LOG' | 'WARN' | 'ERROR', text: string }> | null,
   writeLog(msg: string) {
-    console.log(msg)
-    void appendFile(logPath, '\n----lx log----\n' + msg)
+    const cleaned = scrubPaths(msg)
+    console.log(cleaned)
+    void appendFile(logPath, '\n----lx log----\n' + cleaned)
   },
   async initLogFile() {
     try {
