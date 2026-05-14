@@ -1,10 +1,12 @@
 import { useRef, useImperativeHandle, forwardRef, useState, useEffect } from 'react'
-import ConfirmAlert, { type ConfirmAlertType } from '@/components/common/ConfirmAlert'
-import Text from '@/components/common/Text'
 import { View } from 'react-native'
+
+import ConfirmAlert, { type ConfirmAlertType } from '@/components/common/ConfirmAlert'
 import Input, { type InputType } from '@/components/common/Input'
 import { createStyle, toast } from '@/utils/tools'
 import { useTheme } from '@/store/theme/hook'
+import { useDesignTokens } from '@/theme/v2'
+import { Typography, V2Pressable } from '@/components/v2/atoms'
 import {
   cancelTimeoutExit,
   getTimeoutExitTime,
@@ -22,6 +24,10 @@ import settingState from '@/store/setting/state'
 const MAX_MIN = 1440
 const rxp = /([1-9]\d*)/
 
+const PRESETS = [30, 45, 60] as const
+type PresetMinutes = typeof PRESETS[number]
+type Selection = PresetMinutes | 'custom'
+
 const formatTime = (time: number) => {
   let h = Math.trunc(time / 3600)
   let hStr = h ? h.toString() + ':' : ''
@@ -31,17 +37,83 @@ const formatTime = (time: number) => {
   return `${hStr}${m}:${s}`
 }
 
+const resolveSelectionFromSetting = (raw: string): Selection => {
+  const n = parseInt(raw)
+  if (!Number.isFinite(n) || n <= 0) return PRESETS[0]
+  return (PRESETS as readonly number[]).includes(n) ? (n as PresetMinutes) : 'custom'
+}
+
 const Status = () => {
-  const theme = useTheme()
+  const { colors } = useDesignTokens()
   const t = useI18n()
   const exitTimeInfo = useTimeoutExitTimeInfo()
   const statusText = exitTimeInfo.time < 0
     ? t('timeout_exit_tip_off')
     : t('timeout_exit_tip_on', { time: formatTime(exitTimeInfo.time) })
   return (
-    <View style={styles.tip}>
-      <Text>{statusText}</Text>
-      {exitTimeInfo.isPlayedStop ? <Text color={theme['c-font-label']} size={13}>{t('timeout_exit_btn_wait_tip')}</Text> : null}
+    <View style={styles.statusBlock}>
+      <Typography variant="body" weight="600">{statusText}</Typography>
+      {exitTimeInfo.isPlayedStop
+        ? (
+            <Typography variant="caption" color={colors['c-font-label']} style={{ marginTop: 2 }}>
+              {t('timeout_exit_btn_wait_tip')}
+            </Typography>
+          )
+        : null}
+    </View>
+  )
+}
+
+const Chip = ({ active, label, onPress }: {
+  active: boolean
+  label: string
+  onPress: () => void
+}) => {
+  const { colors, tokens } = useDesignTokens()
+  return (
+    <V2Pressable
+      onPress={onPress}
+      style={{
+        paddingHorizontal: tokens.spacing.md,
+        paddingVertical: tokens.spacing.xs + 2,
+        borderRadius: tokens.radius.pill,
+        borderWidth: 1,
+        borderColor: active ? colors['c-primary'] : colors['c-border-background'],
+        backgroundColor: active ? colors['c-primary-light-200-alpha-700'] : 'transparent',
+      }}
+    >
+      <Typography
+        variant="label"
+        weight={active ? '600' : '500'}
+        color={active ? colors['c-primary'] : undefined}
+      >
+        {label}
+      </Typography>
+    </V2Pressable>
+  )
+}
+
+const PresetRow = ({ selection, onSelect }: {
+  selection: Selection
+  onSelect: (s: Selection) => void
+}) => {
+  const t = useI18n()
+  const { tokens } = useDesignTokens()
+  return (
+    <View style={[styles.chipsRow, { gap: tokens.spacing.sm }]}>
+      {PRESETS.map(m => (
+        <Chip
+          key={m}
+          active={selection === m}
+          label={t('timeout_exit_option_minutes', { minutes: m })}
+          onPress={() => { onSelect(m) }}
+        />
+      ))}
+      <Chip
+        active={selection === 'custom'}
+        label={t('timeout_exit_option_custom')}
+        onPress={() => { onSelect('custom') }}
+      />
     </View>
   )
 }
@@ -52,7 +124,7 @@ interface TimeInputType {
   focus: () => void
 }
 
-const TimeInput = forwardRef<TimeInputType, {}>((props, ref) => {
+const TimeInput = forwardRef<TimeInputType, { onChange?: (text: string) => void }>(({ onChange }, ref) => {
   const theme = useTheme()
   const [text, setText] = useState('')
   const inputRef = useRef<InputType>(null)
@@ -62,26 +134,32 @@ const TimeInput = forwardRef<TimeInputType, {}>((props, ref) => {
     getText() {
       return text.trim()
     },
-    setText(text) {
-      setText(text)
+    setText(value) {
+      setText(value)
     },
     focus() {
       inputRef.current?.focus()
     },
   }))
 
+  const handleChange = (value: string) => {
+    setText(value)
+    onChange?.(value)
+  }
+
   return (
     <Input
       ref={inputRef}
       placeholder={t('timeout_exit_input_tip')}
       value={text}
-      onChangeText={setText}
+      onChangeText={handleChange}
+      keyboardType="number-pad"
       style={{ ...styles.input, backgroundColor: theme['c-primary-input-background'] }}
     />
   )
 })
 
-const Setting = () => {
+const PlayedSetting = () => {
   const t = useI18n()
   const timeoutExitPlayed = useSettingValue('player.timeoutExitPlayed')
   const onCheckChange = (check: boolean) => {
@@ -163,12 +241,18 @@ export default forwardRef<TimeoutExitEditModalType, TimeoutExitEditModalProps>((
   const alertRef = useRef<ConfirmAlertType>(null)
   const timeInputRef = useRef<TimeInputType>(null)
   const [visible, setVisible] = useState(false)
+  const [selection, setSelection] = useState<Selection>(PRESETS[0])
+  const { tokens } = useDesignTokens()
   const t = useI18n()
 
   const handleShow = () => {
     alertRef.current?.setVisible(true)
     requestAnimationFrame(() => {
-      if (settingState.setting['player.timeoutExit']) timeInputRef.current?.setText(settingState.setting['player.timeoutExit'])
+      const saved = settingState.setting['player.timeoutExit']
+      const next = resolveSelectionFromSetting(saved)
+      setSelection(next)
+      if (next === 'custom') timeInputRef.current?.setText(saved)
+      else timeInputRef.current?.setText('')
     })
   }
 
@@ -194,24 +278,36 @@ export default forwardRef<TimeoutExitEditModalType, TimeoutExitEditModalProps>((
     toast(t('timeout_exit_tip_cancel'))
   }
 
-  const handleConfirm = () => {
-    let timeStr = timeInputRef.current?.getText() ?? ''
-    if (rxp.test(timeStr)) {
-      timeStr = RegExp.$1
-      if (parseInt(timeStr) > MAX_MIN) {
-        toast(t('timeout_exit_tip_max', { num: MAX_MIN }))
-        return
-      }
-    } else {
-      if (timeStr.length) toast(t('input_error'))
-      timeStr = ''
+  const handleSelect = (next: Selection) => {
+    setSelection(next)
+    if (next === 'custom') {
+      requestAnimationFrame(() => { timeInputRef.current?.focus() })
     }
-    if (!timeStr) return
-    const time = parseInt(timeStr)
+  }
+
+  const resolveMinutes = (): number | null => {
+    if (selection !== 'custom') return selection
+    let raw = timeInputRef.current?.getText() ?? ''
+    if (!rxp.test(raw)) {
+      if (raw.length) toast(t('input_error'))
+      return null
+    }
+    raw = RegExp.$1
+    const n = parseInt(raw)
+    if (n > MAX_MIN) {
+      toast(t('timeout_exit_tip_max', { num: MAX_MIN }))
+      return null
+    }
+    return n
+  }
+
+  const handleConfirm = () => {
+    const minutes = resolveMinutes()
+    if (minutes == null) return
     cancelTimeoutExit()
-    startTimeoutExit(time * 60)
+    startTimeoutExit(minutes * 60)
     toast(t('timeout_exit_tip_on', { time: formatTime(getTimeoutExitTime()) }))
-    updateSetting({ 'player.timeoutExit': String(time) })
+    updateSetting({ 'player.timeoutExit': String(minutes) })
     alertRef.current?.setVisible(false)
   }
 
@@ -225,13 +321,20 @@ export default forwardRef<TimeoutExitEditModalType, TimeoutExitEditModalProps>((
             onCancel={handleCancel}
             onConfirm={handleConfirm}
           >
-            <View style={styles.alertContent}>
+            <View style={styles.content}>
               <Status />
-              <View style={styles.inputContent}>
-                <TimeInput ref={timeInputRef} />
-                <Text style={styles.inputLabel}>{t('timeout_exit_min')}</Text>
+              <View style={{ marginTop: tokens.spacing.md }}>
+                <PresetRow selection={selection} onSelect={handleSelect} />
               </View>
-              <Setting />
+              {selection === 'custom'
+                ? (
+                    <View style={[styles.inputRow, { marginTop: tokens.spacing.md, gap: tokens.spacing.sm }]}>
+                      <TimeInput ref={timeInputRef} />
+                      <Typography variant="label">{t('timeout_exit_min')}</Typography>
+                    </View>
+                  )
+                : null}
+              <PlayedSetting />
             </View>
           </ConfirmAlert>
         )
@@ -240,27 +343,26 @@ export default forwardRef<TimeoutExitEditModalType, TimeoutExitEditModalProps>((
 })
 
 const styles = createStyle({
-  alertContent: {
+  content: {
     flexShrink: 1,
     flexDirection: 'column',
   },
-  tip: {
-    marginBottom: 8,
+  statusBlock: {
+    marginBottom: 4,
+  },
+  chipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   checkbox: {
-    marginTop: 5,
+    marginTop: 12,
   },
-  inputContent: {
-    marginTop: 8,
-    flex: 1,
+  inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   input: {
     flexGrow: 1,
     flexShrink: 1,
-  },
-  inputLabel: {
-    marginLeft: 8,
   },
 })
