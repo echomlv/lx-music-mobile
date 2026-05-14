@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ActionSheetIOS, Platform, TouchableOpacity } from 'react-native'
+import { ActionSheetIOS, Platform, TouchableOpacity, type GestureResponderEvent } from 'react-native'
 
 import DorpDownMenu, { type DorpDownMenuProps as _DorpDownMenuProps } from '@/components/common/DorpDownMenu'
 import Text from '@/components/common/Text'
@@ -44,7 +44,9 @@ export default ({ btnStyle, onImportAction }: BtnProps) => {
     handleImportAction(action)
   }
 
-  const handleShowActionSheet = () => {
+  const handleShowActionSheet = (event: GestureResponderEvent) => {
+    // iPad 上 ActionSheet 走 popover,必须挂一个锚点,否则会从屏幕底部弹出。
+    const anchor = typeof event.nativeEvent.target == 'number' ? event.nativeEvent.target : undefined
     ActionSheetIOS.showActionSheetWithOptions({
       options: [
         t('user_api_btn_import_local'),
@@ -52,6 +54,7 @@ export default ({ btnStyle, onImportAction }: BtnProps) => {
         t('cancel'),
       ],
       cancelButtonIndex: 2,
+      anchor,
     }, index => {
       switch (index) {
         case 0:

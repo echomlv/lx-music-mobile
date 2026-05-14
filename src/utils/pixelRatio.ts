@@ -5,7 +5,7 @@
  * width:375
  * height:667
  */
-import { PixelRatio } from 'react-native'
+import { PixelRatio, Platform } from 'react-native'
 import { windowSizeTools } from './windowSizeTools'
 
 // 高保真的宽度和高度
@@ -29,9 +29,13 @@ let screenPxW = PixelRatio.getPixelSizeForLayoutSize(screenW)
 let screenPxH = PixelRatio.getPixelSizeForLayoutSize(screenH)
 // console.log(screenPxW, screenPxH)
 
+// iPad 屏幕短边按 iPhone 6 基准换算后 scale 会顶到 3.1,UI 显得过大;
+// 改用更克制的上限,让平板视觉接近"略放大的 iPhone"而非充满屏幕的巨型控件。
+const isPad = Platform.OS == 'ios' && Platform.isPad
+const SCALE_CAP = isPad ? 2.4 : 3.1
 const scaleW = screenPxW / designWidth
 const scaleH = screenPxH / designHeight
-const scale = Math.min(scaleW, scaleH, 3.1)
+const scale = Math.min(scaleW, scaleH, SCALE_CAP)
 // console.log(scale)
 
 /**
