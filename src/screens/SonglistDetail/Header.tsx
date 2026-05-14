@@ -6,12 +6,15 @@ import { useNavigationComponentDidAppear } from '@/navigation'
 import { NAV_SHEAR_NATIVE_IDS } from '@/config/constant'
 import { scaleSizeW } from '@/utils/pixelRatio'
 import { useTheme } from '@/store/theme/hook'
+import { useSettingValue } from '@/store/setting/hook'
+import { useDesignTokens } from '@/theme/v2'
 import Text, { AnimatedText } from '@/components/common/Text'
 import { createStyle } from '@/utils/tools'
 import Image from '@/components/common/Image'
 import { useListInfo } from './state'
 import { useAnimateOnecNumber } from '@/utils/hooks/useAnimateNumber'
 import { useStatusbarHeight } from '@/store/common/hook'
+import { Surface, Typography } from '@/components/v2/atoms'
 
 const IMAGE_WIDTH = scaleSizeW(70)
 
@@ -71,7 +74,9 @@ export interface DetailInfo {
   imgUrl?: string
 }
 
-export default forwardRef<HeaderType, HeaderProps>(({ componentId }: { componentId: string }, ref) => {
+const COVER_V2 = scaleSizeW(110)
+
+const HeaderV1 = forwardRef<HeaderType, HeaderProps>(({ componentId }: { componentId: string }, ref) => {
   const statusBarHeight = useStatusbarHeight()
   const theme = useTheme()
   const info = useListInfo()
@@ -95,14 +100,107 @@ export default forwardRef<HeaderType, HeaderProps>(({ componentId }: { component
         </View>
       </View>
       <ButtonBar />
-      {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <View style={{ flexGrow: 0, flexShrink: 1, paddingTop: 5, paddingRight: 5 }}>
-              <Text style={{ fontSize: 12, color: AppColors.normal20 }} numberOfLines={ 1 }>{playCount || '-'}</Text>
-              <Text style={{ fontSize: 12, color: AppColors.normal30 }} numberOfLines={ 1 }>{this.props.selectListInfo.author || this.props.listDetailData.info.author}</Text>
-            </View>
-      </View> */}
     </View>
   )
+})
+
+const PicV2 = ({ componentId, imgUrl }: {
+  componentId: string
+  imgUrl?: string
+}) => {
+  const [pic, setPic] = useState(imgUrl)
+  const [animated, setAnimated] = useState(false)
+  const info = useListInfo()
+  useEffect(() => {
+    if (animated) setPic(imgUrl)
+  }, [imgUrl, animated])
+
+  useNavigationComponentDidAppear(componentId, () => {
+    setAnimated(true)
+  })
+
+  return (
+    <Surface
+      variant="solid"
+      radius="lg"
+      elevation="sm"
+      style={{ width: COVER_V2, height: COVER_V2, overflow: 'hidden' }}
+    >
+      <Image
+        nativeID={`${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_to_${info.id}`}
+        url={pic}
+        style={{ width: COVER_V2, height: COVER_V2 }}
+      />
+    </Surface>
+  )
+}
+
+const HeaderV2 = forwardRef<HeaderType, HeaderProps>(({ componentId }, ref) => {
+  const statusBarHeight = useStatusbarHeight()
+  const { colors, tokens } = useDesignTokens()
+  const info = useListInfo()
+  const [detailInfo, setDetailInfo] = useState<DetailInfo>({ name: '', desc: '', playCount: '', imgUrl: info.img })
+
+  useImperativeHandle(ref, () => ({
+    setInfo(info) {
+      setDetailInfo(info)
+    },
+  }), [])
+
+  return (
+    <View style={{
+      paddingTop: statusBarHeight + tokens.spacing.md,
+      paddingBottom: tokens.spacing.md,
+      backgroundColor: colors['c-content-background'],
+    }}>
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        paddingHorizontal: tokens.spacing.lg,
+        gap: tokens.spacing.md,
+      }}>
+        <PicV2 componentId={componentId} imgUrl={detailInfo.imgUrl} />
+        <View style={{ flex: 1, paddingTop: tokens.spacing.xs }} nativeID={NAV_SHEAR_NATIVE_IDS.songlistDetail_title}>
+          <Typography variant="title" weight="700" numberOfLines={2}>
+            {detailInfo.name}
+          </Typography>
+          {detailInfo.playCount
+            ? (
+                <Typography
+                  variant="caption"
+                  color={colors['c-font-label']}
+                  numberOfLines={1}
+                  style={{ marginTop: tokens.spacing.xs }}
+                >
+                  {detailInfo.playCount}
+                </Typography>
+              )
+            : null}
+          {detailInfo.desc
+            ? (
+                <Typography
+                  variant="caption"
+                  color={colors['c-font-label']}
+                  numberOfLines={3}
+                  style={{ marginTop: tokens.spacing.xs }}
+                >
+                  {detailInfo.desc}
+                </Typography>
+              )
+            : null}
+        </View>
+      </View>
+      <View style={{ marginTop: tokens.spacing.md }}>
+        <ButtonBar />
+      </View>
+    </View>
+  )
+})
+HeaderV2.displayName = 'v2.SonglistDetail.Header'
+
+export default forwardRef<HeaderType, HeaderProps>((props, ref) => {
+  const useModernUI = useSettingValue('theme.useModernUI')
+  return useModernUI ? <HeaderV2 {...props} ref={ref} /> : <HeaderV1 {...props} ref={ref} />
 })
 
 const styles = createStyle({

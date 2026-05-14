@@ -4,6 +4,7 @@ import { BorderWidths } from '@/theme'
 import { Icon } from '@/components/common/Icon'
 import { createStyle } from '@/utils/tools'
 import { useTheme } from '@/store/theme/hook'
+import { useSettingValue } from '@/store/setting/hook'
 import { type Comment } from '../utils'
 import Text from '@/components/common/Text'
 import { scaleSizeW } from '@/utils/pixelRatio'
@@ -23,6 +24,7 @@ const CommentFloor = memo(({ comment, isLast }: {
   isLast?: boolean
 }) => {
   const theme = useTheme()
+  const useModernUI = useSettingValue('theme.useModernUI')
   const [isAvatarError, setIsAvatarError] = useState(false)
   const { onLayout, width } = useLayout()
   const t = useI18n()
@@ -65,7 +67,7 @@ const CommentFloor = memo(({ comment, isLast }: {
           <Image
             url={comment.avatar && !isAvatarError ? comment.avatar : defaultUser}
             onError={handleAvatarError}
-            style={stylesRaw.avatar} />
+            style={useModernUI ? stylesRaw.avatarRound : stylesRaw.avatar} />
         </View>
         <View style={styles.right}>
           <View style={styles.info}>
@@ -157,6 +159,11 @@ const stylesRaw = StyleSheet.create({
     height: avatarWidth,
     width: avatarWidth,
     borderRadius: 4,
+  },
+  avatarRound: {
+    height: avatarWidth,
+    width: avatarWidth,
+    borderRadius: avatarWidth / 2,
   },
 })
 

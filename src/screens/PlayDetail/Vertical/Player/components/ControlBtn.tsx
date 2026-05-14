@@ -1,7 +1,7 @@
 import { TouchableOpacity, View } from 'react-native'
 import { Icon } from '@/components/common/Icon'
 import { useTheme } from '@/store/theme/hook'
-// import { useIsPlay } from '@/store/player/hook'
+import { useSettingValue } from '@/store/setting/hook'
 import { playNext, playPrev, togglePlay } from '@/core/player/player'
 import { useIsPlay } from '@/store/player/hook'
 import { createStyle } from '@/utils/tools'
@@ -9,6 +9,32 @@ import { useWindowSize } from '@/utils/hooks'
 import { BTN_WIDTH } from './MoreBtn/Btn'
 import { useMemo } from 'react'
 import { markTimeoutExitInteraction } from '@/core/player/timeoutExit'
+import { V2Pressable } from '@/components/v2/atoms'
+
+const Btn = ({ size, onPress, children }: {
+  size: number
+  onPress: () => void
+  children: React.ReactNode
+}) => {
+  const useModernUI = useSettingValue('theme.useModernUI')
+  if (useModernUI) {
+    return (
+      <V2Pressable
+        onPress={onPress}
+        pressScale={0.9}
+        pressOverlay={0.08}
+        style={{ ...styles.cotrolBtn, width: size, height: size }}
+      >
+        {children}
+      </V2Pressable>
+    )
+  }
+  return (
+    <TouchableOpacity style={{ ...styles.cotrolBtn, width: size, height: size }} activeOpacity={0.5} onPress={onPress}>
+      {children}
+    </TouchableOpacity>
+  )
+}
 
 const PrevBtn = ({ size }: { size: number }) => {
   const theme = useTheme()
@@ -17,9 +43,9 @@ const PrevBtn = ({ size }: { size: number }) => {
     void playPrev()
   }
   return (
-    <TouchableOpacity style={{ ...styles.cotrolBtn, width: size, height: size }} activeOpacity={0.5} onPress={handlePlayPrev}>
+    <Btn size={size} onPress={handlePlayPrev}>
       <Icon name='prevMusic' color={theme['c-button-font']} rawSize={size * 0.7} />
-    </TouchableOpacity>
+    </Btn>
   )
 }
 const NextBtn = ({ size }: { size: number }) => {
@@ -29,9 +55,9 @@ const NextBtn = ({ size }: { size: number }) => {
     void playNext()
   }
   return (
-    <TouchableOpacity style={{ ...styles.cotrolBtn, width: size, height: size }} activeOpacity={0.5} onPress={handlePlayNext}>
+    <Btn size={size} onPress={handlePlayNext}>
       <Icon name='nextMusic' color={theme['c-button-font']} rawSize={size * 0.7} />
-    </TouchableOpacity>
+    </Btn>
   )
 }
 
@@ -39,12 +65,12 @@ const TogglePlayBtn = ({ size }: { size: number }) => {
   const theme = useTheme()
   const isPlay = useIsPlay()
   return (
-    <TouchableOpacity style={{ ...styles.cotrolBtn, width: size, height: size }} activeOpacity={0.5} onPress={() => {
+    <Btn size={size} onPress={() => {
       markTimeoutExitInteraction()
       togglePlay()
     }}>
       <Icon name={isPlay ? 'pause' : 'play'} color={theme['c-button-font']} rawSize={size * 0.7} />
-    </TouchableOpacity>
+    </Btn>
   )
 }
 

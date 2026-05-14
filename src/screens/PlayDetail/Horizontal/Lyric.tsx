@@ -32,8 +32,10 @@ const LrcLine = memo(({ line, lineNum, activeLine, activeWordIndex, activeWordPr
   const theme = useTheme()
   const lrcFontSize = useSettingValue('playDetail.horizontal.style.lrcFontSize')
   const textAlign = useSettingValue('playDetail.style.align')
+  const useModernUI = useSettingValue('theme.useModernUI')
   const size = lrcFontSize / 10
-  const lineHeight = setSpText(size) * 1.3
+  const lineHeight = setSpText(size) * (useModernUI ? 1.7 : 1.3)
+  const fontWeight = useModernUI && activeLine == lineNum ? '600' as const : undefined
 
   const colors = useMemo(() => {
     const active = activeLine == lineNum
@@ -55,7 +57,7 @@ const LrcLine = memo(({ line, lineNum, activeLine, activeWordIndex, activeWordPr
   // textBreakStrategy="simple" 用于解决某些设备上字体被截断的问题
   // https://stackoverflow.com/a/72822360
   return (
-    <View style={styles.line} onLayout={handleLayout}>
+    <View style={[styles.line, useModernUI ? styles.lineV2 : null]} onLayout={handleLayout}>
       {
         lineNum == activeLine && line.words?.length
           ? (
@@ -64,6 +66,7 @@ const LrcLine = memo(({ line, lineNum, activeLine, activeWordIndex, activeWordPr
                 textAlign,
                 lineHeight,
                 opacity: colors[2],
+                fontWeight,
               }} size={size}>
                 <KaraokeLine words={line.words} activeWordIndex={activeWordIndex} activeWordProgress={activeWordProgress} size={size} playedColor={colors[0]} inactiveColor={colors[1]} />
               </Text>
@@ -73,6 +76,7 @@ const LrcLine = memo(({ line, lineNum, activeLine, activeWordIndex, activeWordPr
                 ...styles.lineText,
                 textAlign,
                 lineHeight,
+                fontWeight,
               }} textBreakStrategy="simple" color={colors[0]} opacity={colors[2]} size={size}>{line.text}</AnimatedColorText>
             )
       }
@@ -333,7 +337,10 @@ const styles = createStyle({
   line: {
     paddingTop: 10,
     paddingBottom: 10,
-    // opacity: 0,
+  },
+  lineV2: {
+    paddingTop: 16,
+    paddingBottom: 16,
   },
   lineText: {
     textAlign: 'center',

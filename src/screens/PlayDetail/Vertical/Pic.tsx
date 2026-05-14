@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import { View } from 'react-native'
-// import { useLayout } from '@/utils/hooks'
 import { createStyle } from '@/utils/tools'
 import { usePlayerMusicInfo } from '@/store/player/hook'
 import { useWindowSize } from '@/utils/hooks'
@@ -9,6 +8,7 @@ import { useNavigationComponentDidAppear } from '@/navigation'
 import { HEADER_HEIGHT } from './components/Header'
 import Image from '@/components/common/Image'
 import { useStatusbarHeight } from '@/store/common/hook'
+import { useSettingValue } from '@/store/setting/hook'
 import commonState from '@/store/common/state'
 
 
@@ -16,6 +16,7 @@ export default ({ componentId }: { componentId: string }) => {
   const musicInfo = usePlayerMusicInfo()
   const { width: winWidth, height: winHeight } = useWindowSize()
   const statusBarHeight = useStatusbarHeight()
+  const useModernUI = useSettingValue('theme.useModernUI')
 
   const [animated, setAnimated] = useState(!!commonState.componentIds.playDetail)
   const [pic, setPic] = useState(musicInfo.pic)
@@ -26,20 +27,31 @@ export default ({ componentId }: { componentId: string }) => {
   useNavigationComponentDidAppear(componentId, () => {
     setAnimated(true)
   })
-  // console.log('render pic')
 
   const style = useMemo(() => {
     const imgWidth = Math.min(winWidth * 0.8, (winHeight - statusBarHeight - HEADER_HEIGHT) * 0.5)
     return {
       width: imgWidth,
       height: imgWidth,
-      borderRadius: 2,
+      borderRadius: useModernUI ? 16 : 2,
     }
-  }, [statusBarHeight, winHeight, winWidth])
+  }, [statusBarHeight, winHeight, winWidth, useModernUI])
+
+  const contentStyle = useModernUI
+    ? {
+        ...styles.content,
+        borderRadius: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 12 },
+        shadowOpacity: animated ? 0.45 : 0,
+        shadowRadius: 24,
+        elevation: animated ? 12 : 0,
+      }
+    : { ...styles.content, elevation: animated ? 3 : 0 }
 
   return (
     <View style={styles.container}>
-      <View style={{ ...styles.content, elevation: animated ? 3 : 0 }}>
+      <View style={contentStyle}>
         <Image url={pic} nativeID={NAV_SHEAR_NATIVE_IDS.playDetail_pic} style={style} />
       </View>
     </View>
@@ -52,10 +64,8 @@ const styles = createStyle({
     flexShrink: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    // backgroundColor: 'rgba(0,0,0,0.1)',
   },
   content: {
-    // elevation: 3,
     backgroundColor: 'rgba(0,0,0,0)',
     borderRadius: 4,
   },

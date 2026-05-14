@@ -7,6 +7,8 @@ import CommentHot from './CommentHot'
 import CommentNew from './CommentNew'
 import { createStyle, toast } from '@/utils/tools'
 import { useTheme } from '@/store/theme/hook'
+import { useSettingValue } from '@/store/setting/hook'
+import { useDesignTokens } from '@/theme/v2'
 import Text from '@/components/common/Text'
 import { useI18n } from '@/lang'
 import { COMPONENT_IDS } from '@/config/constant'
@@ -15,6 +17,7 @@ import PageContent from '@/components/PageContent'
 import playerState from '@/store/player/state'
 import { scaleSizeH } from '@/utils/pixelRatio'
 import { BorderWidths } from '@/theme'
+import { IconButton, Typography, V2Pressable } from '@/components/v2/atoms'
 
 type ActiveId = 'hot' | 'new'
 
@@ -27,7 +30,6 @@ const HeaderItem = ({ id, label, isActive, onPress }: {
   onPress: (id: ActiveId) => void
 }) => {
   const theme = useTheme()
-  // console.log(theme)
   const components = useMemo(() => (
     <TouchableOpacity style={styles.tabBtn} onPress={() => { !isActive && onPress(id) }}>
       <Text color={isActive ? theme['c-primary-font-active'] : theme['c-font']}>{label}</Text>
@@ -35,6 +37,35 @@ const HeaderItem = ({ id, label, isActive, onPress }: {
   ), [isActive, theme, label, onPress, id])
 
   return components
+}
+
+const HeaderItemV2 = ({ id, label, isActive, onPress }: {
+  id: ActiveId
+  label: string
+  isActive: boolean
+  onPress: (id: ActiveId) => void
+}) => {
+  const { colors, tokens } = useDesignTokens()
+  return (
+    <V2Pressable
+      onPress={() => { !isActive && onPress(id) }}
+      disabled={isActive}
+      style={{
+        paddingHorizontal: tokens.spacing.md,
+        paddingVertical: tokens.spacing.xs,
+        borderRadius: tokens.radius.pill,
+        backgroundColor: isActive ? colors['c-primary-light-200-alpha-700'] : 'transparent',
+      }}
+    >
+      <Typography
+        variant="label"
+        weight={isActive ? '600' : '500'}
+        color={isActive ? colors['c-primary'] : colors['c-font-label']}
+      >
+        {label}
+      </Typography>
+    </V2Pressable>
+  )
 }
 
 const HotCommentPage = memo(({ activeId, musicInfo, onUpdateTotal }: {
@@ -85,6 +116,8 @@ export default memo(({ componentId }: {
   const [musicInfo, setMusicInfo] = useState<LX.Music.MusicInfo | null>(getMusicInfo(playerState.playMusicInfo.musicInfo))
   const t = useI18n()
   const theme = useTheme()
+  const { colors, tokens } = useDesignTokens()
+  const useModernUI = useSettingValue('theme.useModernUI')
   const [total, setTotal] = useState({ hot: 0, new: 0 })
 
   useEffect(() => {
@@ -130,20 +163,52 @@ export default memo(({ componentId }: {
   const commentComponent = useMemo(() => {
     return (
       <View style={styles.container}>
-        <View style={{ ...styles.tabHeader, borderBottomColor: theme['c-border-background'], height: BAR_HEIGHT }}>
-          <View style={styles.left}>
-            {tabs.map(({ id, label }) => <HeaderItem id={id} label={label} key={id} isActive={activeId == id} onPress={toggleTab} />)}
-          </View>
-          <View>
-            <TouchableOpacity onPress={refreshComment} style={{ ...styles.btn, width: BAR_HEIGHT }}>
-              <Icon name="available_updates" size={20} color={theme['c-600']} />
-            </TouchableOpacity>
-          </View>
-        </View>
+        {useModernUI
+          ? (
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: tokens.spacing.md,
+                paddingVertical: tokens.spacing.xs,
+                gap: tokens.spacing.xs,
+                backgroundColor: colors['c-content-background'],
+              }}>
+                <View style={{ flex: 1, flexDirection: 'row', gap: tokens.spacing.xs }}>
+                  {tabs.map(({ id, label }) => (
+                    <HeaderItemV2
+                      key={id}
+                      id={id}
+                      label={label}
+                      isActive={activeId == id}
+                      onPress={toggleTab}
+                    />
+                  ))}
+                </View>
+                <IconButton
+                  name="available_updates"
+                  size={18}
+                  hitSize={36}
+                  radius="pill"
+                  onPress={refreshComment}
+                  accessibilityLabel="refresh"
+                />
+              </View>
+            )
+          : (
+              <View style={{ ...styles.tabHeader, borderBottomColor: theme['c-border-background'], height: BAR_HEIGHT }}>
+                <View style={styles.left}>
+                  {tabs.map(({ id, label }) => <HeaderItem id={id} label={label} key={id} isActive={activeId == id} onPress={toggleTab} />)}
+                </View>
+                <View>
+                  <TouchableOpacity onPress={refreshComment} style={{ ...styles.btn, width: BAR_HEIGHT }}>
+                    <Icon name="available_updates" size={20} color={theme['c-600']} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
         <PagerView
           ref={pagerViewRef}
           onPageSelected={onPageSelected}
-          // onPageScrollStateChanged={onPageScrollStateChanged}
           style={styles.pagerView}
         >
           <View collapsable={false} style={styles.pageStyle}>
@@ -155,7 +220,7 @@ export default memo(({ componentId }: {
         </PagerView>
       </View>
     )
-  }, [activeId, musicInfo, onPageSelected, refreshComment, setHotTotal, setNewTotal, tabs, theme, toggleTab])
+  }, [useModernUI, tokens, colors, activeId, musicInfo, onPageSelected, refreshComment, setHotTotal, setNewTotal, tabs, theme, toggleTab])
 
   return (
     <PageContent>
