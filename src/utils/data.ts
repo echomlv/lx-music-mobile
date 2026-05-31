@@ -340,8 +340,16 @@ export const removeListMusics = async(ids: string[]): Promise<void> => {
 }
 
 
-export const getMusicUrl = async(musicInfo: LX.Music.MusicInfo, type: LX.Quality) => getData<string>(`${storageDataPrefix.musicUrl}${musicInfo.id}_${type}`).then((url) => url ?? '')
-export const saveMusicUrl = async(musicInfo: LX.Music.MusicInfo, type: LX.Quality, url: string) => saveData(`${storageDataPrefix.musicUrl}${musicInfo.id}_${type}`, url)
+// 在线音源返回的播放 URL 通常是带签名的临时链接,过期后访问可能挂在 buffering 状态,
+// 因此对缓存增加 TTL,过期视为未命中。旧版本写入的裸 string 没有 ts,这里一并丢弃。
+const MUSIC_URL_TTL = 10 * 60 * 1000
+interface CachedMusicUrl { url: string, ts: number }
+export const getMusicUrl = async(musicInfo: LX.Music.MusicInfo, type: LX.Quality) => getData<CachedMusicUrl | string>(`${storageDataPrefix.musicUrl}${musicInfo.id}_${type}`).then((cached) => {
+  if (!cached || typeof cached == 'string') return ''
+  if (!cached.ts || Date.now() - cached.ts > MUSIC_URL_TTL) return ''
+  return cached.url ?? ''
+})
+export const saveMusicUrl = async(musicInfo: LX.Music.MusicInfo, type: LX.Quality, url: string) => saveData(`${storageDataPrefix.musicUrl}${musicInfo.id}_${type}`, { url, ts: Date.now() } satisfies CachedMusicUrl)
 export const clearMusicUrl = async(keys?: string[]) => {
   if (!keys) keys = (await getAllKeys()).filter(key => key.startsWith(storageDataPrefix.musicUrl))
   await removeDataMultiple(keys)

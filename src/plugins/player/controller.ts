@@ -28,6 +28,10 @@ export const initUnifiedPlayerController = () => {
   let prevTimeoutId: string | null = null
   let loadingTimeout: number | null = null
   let delayNextTimeout: number | null = null
+  // true 表示当前正处于 loading/buffering 但尚未抵达 playing。
+  // 用于在 iOS AVPlayer 因为播放地址挂死把 rate 拉到 0 触发 'paused' 事件时,
+  // 仍然保留 watchdog,而不是被 'paused' 把 25s 兜底误清掉导致永久卡死。
+  let isLoadingPhase = false
 
   const clearLoadingTimeout = () => {
     if (!loadingTimeout) return
@@ -36,6 +40,7 @@ export const initUnifiedPlayerController = () => {
   }
 
   const startLoadingTimeout = () => {
+    isLoadingPhase = true
     clearLoadingTimeout()
     loadingTimeout = BackgroundTimer.setTimeout(() => {
       if (prevTimeoutId == playerState.musicInfo.id) {
@@ -68,6 +73,7 @@ export const initUnifiedPlayerController = () => {
   const resetRecoveryState = () => {
     retryNum = 0
     prevTimeoutId = null
+    isLoadingPhase = false
     clearDelayNextTimeout()
     clearLoadingTimeout()
   }
@@ -123,6 +129,7 @@ export const initUnifiedPlayerController = () => {
             setStatusText(global.i18n.t('player__buffering'))
             break
           case 'playing':
+            isLoadingPhase = false
             clearLoadingTimeout()
             setStatusText('')
             if (event.driver == 'nativeFlac') {
@@ -144,11 +151,18 @@ export const initUnifiedPlayerController = () => {
             if (event.driver == 'nativeFlac' && Platform.OS == 'ios' && (event.duration ?? 0) > 0 && playerState.musicInfo.id) {
               void updateMetaDataImmediately(playerState.musicInfo, false, playerState.lastLyric)
             }
-          // fallthrough
+            // 仅在已经成功进入过 playing 才清掉 watchdog;若仍处在 loading/buffering
+            // 阶段,这次 'paused' 多半是引擎放弃了挂死的 URL(例如 AVPlayer 把 rate
+            // 拉到 0),保留 timer 让 25s 兜底有机会触发重试/切歌。
+            if (!isLoadingPhase) clearLoadingTimeout()
+            global.app_event.playerPause()
+            global.app_event.pause()
+            break
           case 'stopped':
           case 'idle':
+            isLoadingPhase = false
             clearLoadingTimeout()
-            if (event.driver == 'nativeFlac' && event.state != 'paused') global.lx.playerTrackId = ''
+            if (event.driver == 'nativeFlac') global.lx.playerTrackId = ''
             global.app_event.playerPause()
             global.app_event.pause()
             break
@@ -156,6 +170,7 @@ export const initUnifiedPlayerController = () => {
         if (global.lx.isPlayedStop) void handleExitApp('Timeout Exit')
         break
       case 'error':
+        isLoadingPhase = false
         global.app_event.error()
         global.app_event.playerError()
         handleControllerError()
@@ -178,6 +193,7 @@ export const initUnifiedPlayerController = () => {
         }
         break
       case 'ended':
+        isLoadingPhase = false
         global.lx.playerTrackId = ''
         global.app_event.playerPause()
         global.app_event.pause()
