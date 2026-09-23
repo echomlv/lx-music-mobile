@@ -1,9 +1,9 @@
 import { useHorizontalMode } from '@/utils/hooks'
-import Horizontal from '@/screens/Home/Views/Leaderboard/Horizontal'
+import Horizontal from './Horizontal'
 import Vertical from './Vertical'
 
 /**
- * v2 排行榜:竖屏走 v2,横屏暂时复用 v1(后续横屏切片再统一)。
+ * v2 排行榜:竖屏与横屏均使用现代榜单导航,歌曲列表沿用统一 v2 行样式。
  */
 export default () => {
   const isHorizontalMode = useHorizontalMode()

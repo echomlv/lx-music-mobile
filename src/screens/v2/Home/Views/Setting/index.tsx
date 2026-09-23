@@ -8,7 +8,7 @@ import commonState from '@/store/common/state'
 import { setNavActiveId } from '@/core/common'
 
 import Vertical from '@/screens/Home/Views/Setting/Vertical'
-import Horizontal from '@/screens/Home/Views/Setting/Horizontal'
+import Horizontal from './Horizontal'
 
 /**
  * v2 设置页:沿用 v1 路由 + 全部设置项,
