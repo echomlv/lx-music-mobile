@@ -22,6 +22,12 @@ export default () => {
 
   useEffect(() => {
     void getSongListSetting().then(info => {
+      // 已保存的排序可能已被移除(如 tx 旧的「最热」「最新」),回退为该源的第一个排序
+      const sortList = songlistState.sortList[info.source]
+      if (sortList?.length && !sortList.some(s => s.id == info.sortId)) {
+        info.sortId = sortList[0].id
+        void saveSongListSetting({ sortId: info.sortId })
+      }
       songlistInfo.current.source = info.source
       songlistInfo.current.sortId = info.sortId
       songlistInfo.current.tagId = info.tagId

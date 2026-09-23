@@ -21,15 +21,22 @@ export default {
       tid: 'recommend',
       id: '-1',
     },
+    // QQ 没有可用的排序接口,以下为歌单广场的分类入口(id 即分类 id)。
+    // 原「最热(3)」「最新(2)」同样是分类 id:3 为「语种 → 英语」,2 为隐藏分类,已移除
     {
-      name: '最热',
-      tid: 'hot',
-      id: '3',
+      name: '官方',
+      tid: 'official',
+      id: '3317',
     },
     {
-      name: '最新',
-      tid: 'new',
-      id: '2',
+      name: '情歌',
+      tid: 'love',
+      id: '71',
+    },
+    {
+      name: '经典',
+      tid: 'classic',
+      id: '59',
     },
   ],
   regExps: {
@@ -167,40 +174,64 @@ export default {
   getList(sortId, tagId, page, tryNum = 0) {
     if (this._requestObj_list) this._requestObj_list.cancelHttp()
     if (tryNum > 2) return Promise.reject(new Error('try max num'))
-    if (!tagId) {
-      if (!tagId && sortId == -1) return this.getRecommendList(page)
-      tagId = sortId
+    // 推荐:未选分类时取推荐歌单,选了分类时取该分类
+    if (sortId == -1) {
+      if (!tagId) return this.getRecommendList(page)
+      this._requestObj_list = httpFetch(
+        this.getListUrl(tagId, page),
+      )
+      return this._requestObj_list.promise.then(({ body }) => {
+        if (body.code !== this.successCode) return this.getList(sortId, tagId, page, ++tryNum)
+        return this.filterList(body.playlist.data, page)
+      })
     }
+    // 其他排序本身就是分类入口(忽略所选分类),与 y.qq.com 首页「热门歌单」使用同一接口
     this._requestObj_list = httpFetch(
-      this.getListUrl(tagId, page),
+      this.getPlazaListUrl(sortId, page),
     )
-    // console.log(this.getListUrl(sortId, tagId, page))
     return this._requestObj_list.promise.then(({ body }) => {
       if (body.code !== this.successCode) return this.getList(sortId, tagId, page, ++tryNum)
-      return this.filterList(body.playlist.data, page)
+      return this.filterPlazaList(body.playlist.data, page)
     })
   },
-
-  // filterList(data, page) {
-  //   return {
-  //     list: data.v_playlist.map(item => ({
-  //       play_count: formatPlayCount(item.access_num),
-  //       id: String(item.tid),
-  //       author: item.creator_info.nick,
-  //       name: item.title,
-  //       time: item.modify_time ? dateFormat(item.modify_time * 1000, 'Y-M-D') : '',
-  //       img: item.cover_url_medium,
-  //       // grade: item.favorcnt / 10,
-  //       total: item.song_ids?.length,
-  //       desc: decodeName(item.desc).replace(/<br>/g, '\n'),
-  //       source: 'tx',
-  //     })),
-  //     total: data.total,
-  //     page,
-  //     limit: this.limit_list,
-  //     source: 'tx',
-  //   }
-  // },
+  // 歌单广场分类列表(order 5 为网页默认排序);该接口的 curPage 无效,需用 sin 偏移分页
+  getPlazaListUrl(id, page) {
+    id = parseInt(id)
+    return `https://u.y.qq.com/cgi-bin/musicu.fcg?format=json&inCharset=utf-8&outCharset=utf-8&data=${encodeURIComponent(JSON.stringify({
+      comm: { ct: 24 },
+      playlist: {
+        module: 'playlist.PlayListPlazaServer',
+        method: 'get_playlist_by_category',
+        param: {
+          id,
+          titleid: id,
+          order: 5,
+          curPage: 1,
+          size: this.limit_list,
+          sin: this.limit_list * (page - 1),
+        },
+      },
+    }))}`
+  },
+  filterPlazaList(data, page) {
+    return {
+      list: (data.v_playlist ?? []).map(item => ({
+        play_count: formatPlayCount(item.access_num),
+        id: String(item.tid),
+        author: decodeName(item.creator_info?.nick ?? ''),
+        name: decodeName(item.title),
+        time: item.modify_time ? dateFormat(item.modify_time * 1000, 'Y-M-D') : '',
+        img: item.cover_url_medium,
+        total: item.song_ids?.length,
+        desc: decodeName(item.desc ?? '').replace(/<br>/g, '\n'),
+        source: 'tx',
+      })),
+      total: data.total,
+      page,
+      limit: this.limit_list,
+      source: 'tx',
+    }
+  },
   filterList({ content }, page) {
     // console.log(content.v_item)
     return {
