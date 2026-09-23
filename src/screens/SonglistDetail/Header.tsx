@@ -148,11 +148,16 @@ const HeaderV2 = forwardRef<HeaderType, HeaderProps>(({ componentId }, ref) => {
   }), [])
 
   return (
-    <View style={{
-      paddingTop: statusBarHeight + tokens.spacing.md,
-      paddingBottom: tokens.spacing.md,
-      backgroundColor: colors['c-content-background'],
-    }}>
+    <Surface
+      variant="blur"
+      radius="none"
+      elevation="sm"
+      style={{
+        paddingTop: statusBarHeight + tokens.spacing.md,
+        paddingBottom: tokens.spacing.md,
+        backgroundColor: colors['c-content-background'],
+      }}
+    >
       <View style={{
         flexDirection: 'row',
         alignItems: 'flex-start',
@@ -193,7 +198,7 @@ const HeaderV2 = forwardRef<HeaderType, HeaderProps>(({ componentId }, ref) => {
       <View style={{ marginTop: tokens.spacing.md }}>
         <ButtonBar />
       </View>
-    </View>
+    </Surface>
   )
 })
 HeaderV2.displayName = 'v2.SonglistDetail.Header'

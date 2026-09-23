@@ -8,11 +8,14 @@ import { COMPONENT_IDS } from '@/config/constant'
 import { type ListInfoItem } from '@/store/songlist/state'
 import PlayerBar from '@/components/player/PlayerBar'
 import { ListInfoContext } from './state'
+import { useSettingValue } from '@/store/setting/hook'
+import { StatusBarV2 } from '@/components/v2/atoms'
 
 
 export default ({ componentId, info }: { componentId: string, info: ListInfoItem }) => {
   const musicListRef = useRef<MusicListType>(null)
   const isUnmountedRef = useRef(false)
+  const useModernUI = useSettingValue('theme.useModernUI')
 
   useEffect(() => {
     setComponentId(COMPONENT_IDS.songlistDetail, componentId)
@@ -31,7 +34,7 @@ export default ({ componentId, info }: { componentId: string, info: ListInfoItem
 
   return (
     <PageContent>
-      <StatusBar />
+      {useModernUI ? <StatusBarV2 /> : <StatusBar />}
       <ListInfoContext.Provider value={info}>
         <MusicList ref={musicListRef} componentId={componentId} />
       </ListInfoContext.Provider>

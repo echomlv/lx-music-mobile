@@ -12,6 +12,9 @@ import { HEADER_HEIGHT as _HEADER_HEIGHT } from '@/config/constant'
 import { scaleSizeH } from '@/utils/pixelRatio'
 import commonState from '@/store/common/state'
 import { useStatusbarHeight } from '@/store/common/hook'
+import { useSettingValue } from '@/store/setting/hook'
+import { useDesignTokens } from '@/theme/v2'
+import { Surface, Typography, V2Pressable } from '@/components/v2/atoms'
 
 const HEADER_HEIGHT = scaleSizeH(_HEADER_HEIGHT)
 
@@ -20,23 +23,47 @@ export default memo(({ musicInfo }: {
 }) => {
   const t = useI18n()
   const statusBarHeight = useStatusbarHeight()
+  const useModernUI = useSettingValue('theme.useModernUI')
+  const { tokens, semanticColors } = useDesignTokens()
 
   const back = () => {
     void pop(commonState.componentIds.comment!)
   }
 
+  const content = (
+    <View style={{ ...styles.container }}>
+      {useModernUI
+        ? (
+            <V2Pressable onPress={back} style={{ ...styles.button, width: HEADER_HEIGHT }} accessibilityRole="button">
+              <Icon name="chevron-left" size={18} />
+            </V2Pressable>
+          )
+        : (
+            <TouchableOpacity onPress={back} style={{ ...styles.button, width: HEADER_HEIGHT }}>
+              <Icon name="chevron-left" size={18} />
+            </TouchableOpacity>
+          )}
+      {useModernUI
+        ? <Typography variant="body" weight="600" numberOfLines={1} style={styles.title}>{t('comment_title', { name: musicInfo.name, singer: musicInfo.singer })}</Typography>
+        : <Text numberOfLines={1} size={16} style={styles.title}>{t('comment_title', { name: musicInfo.name, singer: musicInfo.singer })}</Text>}
+    </View>
+  )
+
   return (
     <View style={{ height: HEADER_HEIGHT + statusBarHeight, paddingTop: statusBarHeight }}>
       <StatusBar />
-      <View style={{ ...styles.container }}>
-        <TouchableOpacity onPress={back} style={{ ...styles.button, width: HEADER_HEIGHT }}>
-          <Icon name="chevron-left" size={18} />
-        </TouchableOpacity>
-        <Text numberOfLines={1} size={16} style={styles.title}>{t('comment_title', { name: musicInfo.name, singer: musicInfo.singer })}</Text>
-        {/* <TouchableOpacity onPress={back} style={{ ...styles.button }}>
-          <Icon name="available_updates" style={{ color: theme.normal }} size={24} />
-        </TouchableOpacity> */}
-      </View>
+      {useModernUI
+        ? (
+            <Surface
+              variant="blur"
+              radius="none"
+              elevation="none"
+              style={{ flex: 1, paddingHorizontal: tokens.spacing.xs, borderBottomWidth: 1, borderBottomColor: semanticColors.border }}
+            >
+              {content}
+            </Surface>
+          )
+        : content}
     </View>
   )
 })
