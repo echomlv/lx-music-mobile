@@ -399,28 +399,35 @@ export default {
   },
 
   search(text, page, limit = 20, retryNum = 0) {
-    if (retryNum > 5) throw new Error('max retry')
-    return httpFetch(`http://c.y.qq.com/soso/fcgi-bin/client_music_search_songlist?page_no=${page - 1}&num_per_page=${limit}&format=json&query=${encodeURIComponent(text)}&remoteplace=txt.yqq.playlist&inCharset=utf8&outCharset=utf-8`, {
+    const url = `https://c.y.qq.com/soso/fcgi-bin/client_music_search_songlist?page_no=${page - 1}&num_per_page=${limit}&format=json&query=${encodeURIComponent(text)}&remoteplace=txt.yqq.playlist&inCharset=utf8&outCharset=utf-8`
+    const retry = (error) => {
+      if (retryNum >= 5) return Promise.reject(error)
+      return this.search(text, page, limit, retryNum + 1)
+    }
+
+    return httpFetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)',
-        Referer: 'http://y.qq.com/portal/search.html',
+        Referer: 'https://y.qq.com/portal/search.html',
       },
     })
-      .promise.then(({ body }) => {
-        if (body.code != 0) return this.search(text, page, limit, ++retryNum)
-        // console.log(body.data.list)
+      .promise.then(({ body, statusCode }) => {
+        if (statusCode !== 200 || body?.code !== 0 || !Array.isArray(body?.data?.list)) {
+          throw new Error(`tx song list search failed: ${body?.message || `HTTP ${statusCode}`}`)
+        }
+
         return {
           list: body.data.list.map(item => {
             return {
               play_count: formatPlayCount(item.listennum),
               id: String(item.dissid),
-              author: decodeName(item.creator.name),
+              author: decodeName(item.creator?.name),
               name: decodeName(item.dissname),
               time: dateFormat(item.createtime, 'Y-M-D'),
               img: item.imgurl,
               // grade: item.favorcnt / 10,
               total: item.song_count,
-              desc: decodeName(decodeName(item.introduction)).replace(/<br>/g, '\n'),
+              desc: decodeName(decodeName(item.introduction || '')).replace(/<br>/g, '\n'),
               source: 'tx',
             }
           }),
@@ -429,6 +436,7 @@ export default {
           source: 'tx',
         }
       })
+      .catch(retry)
   },
 }
 
