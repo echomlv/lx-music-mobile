@@ -106,9 +106,13 @@ const getListDetailLimit = async(source: LX.OnlineSource, id: string, page: numb
     if (prevPageData) sourcePage = prevPageData.sourcePage
   }
 
-  const getSourceListDetail = musicSdk[source]?.songList.getListDetail as ((id: string, page: number, hostUin?: string) => Promise<ListDetailInfo>) | undefined
-  if (!getSourceListDetail) return Promise.reject(new Error('source not found'))
-  return getSourceListDetail(id, sourcePage + 1, hostUin).then((result: ListDetailInfo) => {
+  const songList = musicSdk[source]?.songList as { getListDetail: (id: string, pageOrTryNum: number, extra?: string) => Promise<ListDetailInfo> } | undefined
+  if (!songList) return Promise.reject(new Error('source not found'))
+  // 必须通过 songList 调用以保留 this;tx 的签名为 (id, tryNum, hostUin),其他源为 (id, page, tryNum)
+  const request: Promise<ListDetailInfo> = source == 'tx'
+    ? songList.getListDetail(id, 0, hostUin)
+    : songList.getListDetail(id, sourcePage + 1)
+  return request.then((result: ListDetailInfo) => {
     if (listCache !== cache.get(listKey)) return
     result.list = deduplicationList(result.list.map(m => toNewMusicInfo(m)) as LX.Music.MusicInfoOnline[])
     let p = page
