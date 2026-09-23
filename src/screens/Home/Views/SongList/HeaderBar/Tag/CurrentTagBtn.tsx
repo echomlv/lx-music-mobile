@@ -11,22 +11,27 @@ export interface CurrentTagBtnProps {
 
 export interface CurrentTagBtnType {
   setCurrentTagInfo: (name: string) => void
+  /** 当前排序不支持分类时置灰并显示为默认 */
+  setDisabled: (disabled: boolean) => void
 }
 
 export default forwardRef<CurrentTagBtnType, CurrentTagBtnProps>(({ onShowList }, ref) => {
   const t = useI18n()
   const [name, setName] = useState('')
+  const [disabled, setDisabled] = useState(false)
 
   useImperativeHandle(ref, () => ({
     setCurrentTagInfo(name) {
-      if (!name) name = t('songlist_tag_default')
       setName(name)
+    },
+    setDisabled(disabled) {
+      setDisabled(disabled)
     },
   }))
 
   return (
-    <Button style={styles.btn} onPress={onShowList}>
-      <Text style={styles.sourceMenu}>{name}</Text>
+    <Button style={styles.btn} onPress={onShowList} disabled={disabled}>
+      <Text style={styles.sourceMenu}>{disabled || !name ? t('songlist_tag_default') : name}</Text>
     </Button>
   )
 })

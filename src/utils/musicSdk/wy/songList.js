@@ -24,11 +24,13 @@ export default {
       name: '推荐',
       tid: 'recommend',
       id: 'recommend',
+      disableTag: true,
     },
     {
       name: '官方',
       tid: 'official',
       id: 'official',
+      disableTag: true,
     },
     {
       name: '精品',

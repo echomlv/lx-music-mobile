@@ -3,6 +3,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 // import TagPopup, { type TagPopupProps, type TagPopupType } from './TagPopup'
 import CurrentTagBtn, { type CurrentTagBtnType } from './CurrentTagBtn'
 import { type Source } from '@/store/songlist/state'
+import { isTagDisabled } from '@/core/songlist'
 
 
 export interface TagProps {
@@ -40,9 +41,11 @@ export default forwardRef<TagType, TagProps>(({ onTagChange }, ref) => {
       tagInfoRef.current.source = source
       tagInfoRef.current.sortId = sortId
       currentTagBtnRef.current?.setCurrentTagInfo(name)
+      currentTagBtnRef.current?.setDisabled(isTagDisabled(source, sortId))
     },
     setSortId(sortId, resetTag) {
       tagInfoRef.current.sortId = sortId
+      currentTagBtnRef.current?.setDisabled(isTagDisabled(tagInfoRef.current.source, sortId))
       if (!resetTag) return
       tagInfoRef.current.activeId = ''
       currentTagBtnRef.current?.setCurrentTagInfo('')

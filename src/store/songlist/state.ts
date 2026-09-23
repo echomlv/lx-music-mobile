@@ -4,6 +4,8 @@ export declare interface SortInfo {
   name: string
   tid: 'recommend' | 'hot' | 'new' | 'hot_collect' | 'rise' | 'highquality' | 'style' | 'official' | 'love' | 'classic'
   id: string
+  /** 该排序本身即固定来源,不支持叠加分类 */
+  disableTag?: boolean
 }
 
 export declare interface TagInfoItem<T extends LX.OnlineSource = LX.OnlineSource> {

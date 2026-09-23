@@ -21,6 +21,16 @@ export const getSortList = (source: LX.OnlineSource) => {
   return songlistState.sortList[source]!
 }
 
+/**
+ * 当前排序是否不支持分类(分类按钮置灰并显示为默认)
+ * @param source
+ * @param sortId
+ * @returns
+ */
+export const isTagDisabled = (source: LX.OnlineSource, sortId: string) => {
+  return !!songlistState.sortList[source]?.find(s => s.id == sortId)?.disableTag
+}
+
 const extraTagsCache = new Map<string, TagInfo>()
 
 /**

@@ -14,6 +14,7 @@ import { useI18n } from '@/lang'
 import commonState from '@/store/common/state'
 import songlistState, { type Source, type SortInfo, type InitState } from '@/store/songlist/state'
 import { navigations } from '@/navigation'
+import { isTagDisabled } from '@/core/songlist'
 
 import SourceSelector, {
   type SourceSelectorType as _SourceSelectorType,
@@ -151,6 +152,8 @@ const TagChip = forwardRef<TagChipType, { onTagChange: (name: string, id: string
   const { colors, tokens } = useDesignTokens()
   const t = useI18n()
   const [name, setName] = useState('')
+  // 当前排序不支持分类时置灰并显示为默认
+  const [disabled, setDisabled] = useState(false)
   const infoRef = useRef<{ source: Source, activeId: string, sortId: string }>({ source: 'kw', activeId: '', sortId: '' })
 
   useEffect(() => {
@@ -171,17 +174,19 @@ const TagChip = forwardRef<TagChipType, { onTagChange: (name: string, id: string
       infoRef.current.source = source
       infoRef.current.sortId = sortId
       setName(n)
+      setDisabled(isTagDisabled(source, sortId))
     },
     setSortId(sortId, resetTag) {
       infoRef.current.sortId = sortId
+      setDisabled(isTagDisabled(infoRef.current.source, sortId))
       if (!resetTag) return
       infoRef.current.activeId = ''
       setName('')
     },
   }))
 
-  const display = name || t('songlist_tag_default')
-  const selected = !!name
+  const display = disabled || !name ? t('songlist_tag_default') : name
+  const selected = !disabled && !!name
 
   const handleShow = () => {
     global.app_event.showSonglistTagList(infoRef.current.source, infoRef.current.activeId, infoRef.current.sortId)
@@ -190,7 +195,9 @@ const TagChip = forwardRef<TagChipType, { onTagChange: (name: string, id: string
   return (
     <V2Pressable
       onPress={handleShow}
+      disabled={disabled}
       style={{
+        opacity: disabled ? 0.4 : 1,
         height: 32,
         paddingHorizontal: tokens.spacing.md,
         borderRadius: tokens.radius.pill,

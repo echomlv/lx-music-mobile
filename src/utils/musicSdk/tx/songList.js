@@ -27,16 +27,19 @@ export default {
       name: '官方',
       tid: 'official',
       id: '3317',
+      disableTag: true,
     },
     {
       name: '情歌',
       tid: 'love',
       id: '71',
+      disableTag: true,
     },
     {
       name: '经典',
       tid: 'classic',
       id: '59',
+      disableTag: true,
     },
   ],
   regExps: {
