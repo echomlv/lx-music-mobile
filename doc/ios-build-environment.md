@@ -187,9 +187,39 @@ plutil -lint ios/LxMusicMobile.xcodeproj/project.pbxproj
 xcodebuild -project ios/LxMusicMobile.xcodeproj -list
 ```
 
-## 10. 构建 iOS 模拟器版本
+## 10. 日常开发：两个终端窗口
 
-完成 Pods 安装后，在仓库根目录执行：
+首次完成 `npm ci` 和 Pods 安装后，打开两个终端窗口，都进入仓库根目录并切换到 Node.js 18。
+
+第一个窗口启动 Metro，保持运行：
+
+```bash
+cd /path/to/lx-music-mobile
+nvm use
+npm start
+```
+
+第二个窗口编译并启动 iOS 模拟器 App：
+
+```bash
+cd /path/to/lx-music-mobile
+nvm use
+npm run ios
+```
+
+`npm run ios` 对应仓库的 `react-native run-ios` 脚本。首次编译会比较久；之后修改 JavaScript/TypeScript 代码通常由 Metro 刷新。只有依赖或原生代码发生变化时，才需要重新安装 Pods 或重新编译 App。
+
+也可以打开 CocoaPods 生成的 workspace，在 Xcode 中选择模拟器并运行 `LxMusicMobile` scheme，同时让第一个窗口的 Metro 保持运行：
+
+```bash
+open ios/LxMusicMobile.xcworkspace
+```
+
+不要直接打开 `ios/LxMusicMobile.xcodeproj`，否则 Pods 依赖不会被加载。
+
+## 11. 可选：命令行构建检查
+
+需要单独验证模拟器原生构建时，可以在仓库根目录执行：
 
 ```bash
 xcodebuild \
@@ -203,24 +233,6 @@ xcodebuild \
 ```
 
 该命令不需要 Apple Developer 签名。
-
-## 11. 使用 Xcode 运行
-
-打开 CocoaPods 生成的 workspace：
-
-```bash
-open ios/LxMusicMobile.xcworkspace
-```
-
-不要直接打开 `ios/LxMusicMobile.xcodeproj`，否则 Pods 依赖不会被加载。
-
-启动 Metro：
-
-```bash
-npm start
-```
-
-然后在 Xcode 中选择模拟器并运行 `LxMusicMobile` scheme。
 
 ## 12. 真机运行与签名
 
