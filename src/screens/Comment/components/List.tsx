@@ -8,6 +8,9 @@ import { useTheme } from '@/store/theme/hook'
 import { type Comment } from '../utils'
 import { useI18n } from '@/lang'
 import Text from '@/components/common/Text'
+import { useSettingValue } from '@/store/setting/hook'
+import { useDesignTokens } from '@/theme/v2'
+import { Typography } from '@/components/v2/atoms'
 
 type FlatListType = FlatListProps<Comment>
 
@@ -28,6 +31,8 @@ const List = forwardRef<ListType, ListProps>(({
 }, ref) => {
   // const t = useI18n()
   const theme = useTheme()
+  const useModernUI = useSettingValue('theme.useModernUI')
+  const { tokens } = useDesignTokens()
   const flatListRef = useRef<FlatList>(null)
   const [currentList, setList] = useState<Comment[]>([])
   const [status, setStatus] = useState<Status>('idle')
@@ -85,7 +90,7 @@ const List = forwardRef<ListType, ListProps>(({
   return (
     <FlatList
       ref={flatListRef}
-      style={styles.list}
+      style={[styles.list, useModernUI ? { paddingHorizontal: tokens.spacing.md } : null]}
       data={currentList}
       onEndReachedThreshold={0.5}
       // maxToRenderPerBatch={4}
@@ -110,6 +115,7 @@ const Footer = ({ label, onLoadMore }: {
   onLoadMore: () => void
 }) => {
   const theme = useTheme()
+  const useModernUI = useSettingValue('theme.useModernUI')
   const t = useI18n()
   const handlePress = () => {
     if (label != 'list_error') return
@@ -119,7 +125,9 @@ const Footer = ({ label, onLoadMore }: {
     label
       ? (
           <View>
-            <Text onPress={handlePress} style={styles.footer} color={theme['c-font-label']}>{t(label)}</Text>
+          {useModernUI
+            ? <Typography variant="caption" color={theme['c-font-label']} onPress={handlePress} style={styles.footer}>{t(label)}</Typography>
+            : <Text onPress={handlePress} style={styles.footer} color={theme['c-font-label']}>{t(label)}</Text>}
           </View>
         )
       : null
