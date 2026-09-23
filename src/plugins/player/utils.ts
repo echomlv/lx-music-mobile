@@ -244,7 +244,6 @@ export interface NowPlayingTitles {
   lyric?: string
 }
 export const updateNowPlayingTitles = async(titles: NowPlayingTitles) => {
-  console.log('set playing titles', titles)
   if (Platform.OS == 'ios') return Promise.resolve()
   const updateTitles = TrackPlayer.updateNowPlayingTitles as unknown as {
     (titles: NowPlayingTitles): Promise<void>

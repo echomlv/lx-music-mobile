@@ -339,15 +339,26 @@ export const removeListMusics = async(ids: string[]): Promise<void> => {
   // delaySaveListScrollPosition(global.lx.listScrollPosition)
 }
 
-
+export const qualitys = ['128k', '320k', 'flac', 'flac24bit']
 // 在线音源返回的播放 URL 通常是带签名的临时链接,过期后访问可能挂在 buffering 状态,
 // 因此对缓存增加 TTL,过期视为未命中。旧版本写入的裸 string 没有 ts,这里一并丢弃。
 const MUSIC_URL_TTL = 10 * 60 * 1000
 interface CachedMusicUrl { url: string, ts: number }
+const isCachedMusicUrlValid = (cached: unknown): cached is CachedMusicUrl => {
+  if (!cached || typeof cached != 'object') return false
+  const value = cached as Partial<CachedMusicUrl>
+  return typeof value.url == 'string' && !!value.url && typeof value.ts == 'number' && Date.now() - value.ts <= MUSIC_URL_TTL
+}
+export const hasMusicUrlByMusic = async(musicInfo: LX.Music.MusicInfo) => {
+  return getDataMultiple(qualitys.map(q => `${storageDataPrefix.musicUrl}${musicInfo.id}_${q}`)).then((urls) => {
+    return urls.some(([, cached]) => isCachedMusicUrlValid(cached))
+  })
+}
+export const clearMusicUrlByMusic = async(musicInfo: LX.Music.MusicInfo) => {
+  await removeDataMultiple(qualitys.map(q => `${storageDataPrefix.musicUrl}${musicInfo.id}_${q}`))
+}
 export const getMusicUrl = async(musicInfo: LX.Music.MusicInfo, type: LX.Quality) => getData<CachedMusicUrl | string>(`${storageDataPrefix.musicUrl}${musicInfo.id}_${type}`).then((cached) => {
-  if (!cached || typeof cached == 'string') return ''
-  if (!cached.ts || Date.now() - cached.ts > MUSIC_URL_TTL) return ''
-  return cached.url ?? ''
+  return isCachedMusicUrlValid(cached) ? cached.url : ''
 })
 export const saveMusicUrl = async(musicInfo: LX.Music.MusicInfo, type: LX.Quality, url: string) => saveData(`${storageDataPrefix.musicUrl}${musicInfo.id}_${type}`, { url, ts: Date.now() } satisfies CachedMusicUrl)
 export const clearMusicUrl = async(keys?: string[]) => {

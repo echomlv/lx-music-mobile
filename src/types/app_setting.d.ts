@@ -164,7 +164,7 @@ declare global {
       'player.playbackRate': number
 
       /**
-       * 缓存大小设置 unit MB
+       * 缓存大小设置 unit MiB
        */
       'player.cacheSize': string
 
