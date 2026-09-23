@@ -34,6 +34,7 @@ export interface HeaderBarProps {
 
 export interface HeaderBarType {
   setSource: (source: Source, sortId: string, tagName: string, tagId: string) => void
+  setSortId: (sortId: string, resetTag: boolean) => void
 }
 
 // ---------------- Source chip ----------------
@@ -141,14 +142,16 @@ SortTab.displayName = 'v2.SongList.SortTab'
 // ---------------- Tag chip ----------------
 
 interface TagChipType {
-  setSelectedTagInfo: (source: Source, name: string, activeId: string) => void
+  setSelectedTagInfo: (source: Source, name: string, activeId: string, sortId: string) => void
+  /** 切换排序;resetTag 为 true 时(分类体系改变)重置为默认分类 */
+  setSortId: (sortId: string, resetTag: boolean) => void
 }
 
 const TagChip = forwardRef<TagChipType, { onTagChange: (name: string, id: string) => void }>(({ onTagChange }, ref) => {
   const { colors, tokens } = useDesignTokens()
   const t = useI18n()
   const [name, setName] = useState('')
-  const infoRef = useRef<{ source: Source, activeId: string }>({ source: 'kw', activeId: '' })
+  const infoRef = useRef<{ source: Source, activeId: string, sortId: string }>({ source: 'kw', activeId: '', sortId: '' })
 
   useEffect(() => {
     const handleChange = (name: string, id: string) => {
@@ -163,10 +166,17 @@ const TagChip = forwardRef<TagChipType, { onTagChange: (name: string, id: string
   }, [onTagChange])
 
   useImperativeHandle(ref, () => ({
-    setSelectedTagInfo(source, n, activeId) {
+    setSelectedTagInfo(source, n, activeId, sortId) {
       infoRef.current.activeId = activeId
       infoRef.current.source = source
+      infoRef.current.sortId = sortId
       setName(n)
+    },
+    setSortId(sortId, resetTag) {
+      infoRef.current.sortId = sortId
+      if (!resetTag) return
+      infoRef.current.activeId = ''
+      setName('')
     },
   }))
 
@@ -174,7 +184,7 @@ const TagChip = forwardRef<TagChipType, { onTagChange: (name: string, id: string
   const selected = !!name
 
   const handleShow = () => {
-    global.app_event.showSonglistTagList(infoRef.current.source, infoRef.current.activeId)
+    global.app_event.showSonglistTagList(infoRef.current.source, infoRef.current.activeId, infoRef.current.sortId)
   }
 
   return (
@@ -264,8 +274,11 @@ export default memo(forwardRef<HeaderBarType, HeaderBarProps>(({
     setSource(source, sortId, tagName, tagId) {
       sourceRef.current?.setSource(source)
       sortRef.current?.setSource(source, sortId)
-      tagRef.current?.setSelectedTagInfo(source, tagName, tagId)
+      tagRef.current?.setSelectedTagInfo(source, tagName, tagId, sortId)
       openRef.current?.setInfo(source)
+    },
+    setSortId(sortId, resetTag) {
+      tagRef.current?.setSortId(sortId, resetTag)
     },
   }), [])
 

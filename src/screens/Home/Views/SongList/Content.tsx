@@ -1,4 +1,5 @@
 import { getSongListSetting, saveSongListSetting } from '@/utils/data'
+import { getTagType } from '@/core/songlist'
 import { useEffect, useRef } from 'react'
 import { StyleSheet, View } from 'react-native'
 
@@ -30,9 +31,16 @@ export default () => {
   }, [])
 
   const handleSortChange: HeaderBarProps['onSortChange'] = (id) => {
+    const { source, sortId: prevSortId } = songlistInfo.current
+    // 排序切换导致分类体系变化(如网易「曲风」)时,原分类 id 不再适用,重置为默认分类
+    const resetTag = getTagType(source, prevSortId) != getTagType(source, id)
     songlistInfo.current.sortId = id
-    void saveSongListSetting({ sortId: id })
-    listRef.current?.loadList(songlistInfo.current.source, id, songlistInfo.current.tagId)
+    if (resetTag) {
+      songlistInfo.current.tagId = ''
+      void saveSongListSetting({ sortId: id, tagId: '', tagName: '' })
+    } else void saveSongListSetting({ sortId: id })
+    headerBarRef.current?.setSortId(id, resetTag)
+    listRef.current?.loadList(source, id, songlistInfo.current.tagId)
   }
 
   const handleTagChange: HeaderBarProps['onTagChange'] = (name, id) => {

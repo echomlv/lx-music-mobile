@@ -5,7 +5,7 @@ import { createStyle } from '@/utils/tools'
 import TagGroup, { type TagGroupProps } from './TagGroup'
 import { useI18n } from '@/lang'
 import { type TagInfo, type Source } from '@/store/songlist/state'
-import { getTags } from '@/core/songlist'
+import { getTags, getTagType } from '@/core/songlist'
 import Text from '@/components/common/Text'
 // import { BorderWidths } from '@/theme'
 
@@ -14,7 +14,7 @@ export interface ListProps {
 }
 
 export interface ListType {
-  loadTag: (source: Source, activeId: string) => void
+  loadTag: (source: Source, activeId: string, sortId: string) => void
 }
 
 export default forwardRef<ListType, ListProps>(({ onTagChange }, ref) => {
@@ -22,7 +22,8 @@ export default forwardRef<ListType, ListProps>(({ onTagChange }, ref) => {
   const [activeId, setActiveId] = useState('')
   const [list, setList] = useState<TagInfo['tags']>([])
   const t = useI18n()
-  const prevSource = useRef('')
+  // 已加载的分类体系(音源 + 排序对应的分类类型)
+  const prevTagKey = useRef('')
 
   const isUnmountedRef = useRef(false)
   useEffect(() => {
@@ -33,13 +34,14 @@ export default forwardRef<ListType, ListProps>(({ onTagChange }, ref) => {
   }, [])
 
   useImperativeHandle(ref, () => ({
-    loadTag(source, id) {
+    loadTag(source, id, sortId) {
       if (id != activeId) setActiveId(id)
-      if (source != prevSource.current) {
+      const tagKey = `${source}__${getTagType(source, sortId)}`
+      if (tagKey != prevTagKey.current) {
         setList([{ name: '', list: [{ name: t('songlist_tag_default'), id: '', parent_id: '', parent_name: '', source }] }])
-        void getTags(source).then(tagInfo => {
+        void getTags(source, sortId).then(tagInfo => {
           if (isUnmountedRef.current) return
-          prevSource.current = source
+          prevTagKey.current = tagKey
           setList([
             { name: '', list: [{ name: t('songlist_tag_default'), id: '', parent_id: '', parent_name: '', source }] },
             { name: t('songlist_tag_hot'), list: [...tagInfo.hotTag] },

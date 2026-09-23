@@ -18,12 +18,34 @@ export default {
   limit_song: 100000,
   successCode: 200,
   cookie: 'MUSIC_U=',
+  _highQualityCursor: new Map(),
   sortList: [
+    {
+      name: '推荐',
+      tid: 'recommend',
+      id: 'recommend',
+    },
+    {
+      name: '官方',
+      tid: 'official',
+      id: 'official',
+    },
+    {
+      name: '精品',
+      tid: 'highquality',
+      id: 'highquality',
+    },
+    {
+      name: '曲风',
+      tid: 'style',
+      id: 'style',
+    },
     {
       name: '最热',
       tid: 'hot',
       id: 'hot',
     },
+    // order=new 已失效(返回空列表)
     // {
     //   name: '最新',
     //   tid: 'new',
@@ -206,7 +228,113 @@ export default {
   },
 
   // 获取列表数据
-  getList(sortId, tagId, page, tryNum = 0) {
+  getList(sortId, tagId, page) {
+    switch (sortId) {
+      case 'recommend': return this.getRecommendList()
+      // 官方歌单:歌单广场接口的「官方」分类(catalogue/hottags 中不提供),不与其他分类叠加
+      case 'official': return this.getHotList('hot', '官方', page)
+      case 'highquality': return this.getHighQualityList(tagId, page)
+      case 'style': return this.getStyleList(tagId, page)
+      default: return this.getHotList(sortId, tagId, page)
+    }
+  },
+  // 推荐歌单:不支持分类与分页,一次取回
+  getRecommendList(tryNum = 0) {
+    if (tryNum > 2) return Promise.reject(new Error('try max num'))
+    if (this._requestObj_list) this._requestObj_list.cancelHttp()
+    this._requestObj_list = httpFetch('https://music.163.com/weapi/personalized/playlist', {
+      method: 'post',
+      form: weapi({
+        limit: 100,
+        total: true,
+        n: 1000,
+      }),
+    })
+    return this._requestObj_list.promise.then(({ body }) => {
+      if (body.code !== this.successCode) return this.getRecommendList(++tryNum)
+      const list = body.result.map(item => ({
+        play_count: formatPlayCount(item.playCount),
+        id: String(item.id),
+        author: '',
+        name: item.name,
+        time: '',
+        img: item.picUrl,
+        total: item.trackCount,
+        desc: item.copywriter,
+        source: 'wy',
+      }))
+      return {
+        list,
+        total: list.length,
+        page: 1,
+        limit: list.length || this.limit_list,
+        source: 'wy',
+      }
+    })
+  },
+  // 精品歌单:以上一页返回的 lasttime 作为下一页游标
+  getHighQualityList(tagId, page, tryNum = 0) {
+    if (tryNum > 2) return Promise.reject(new Error('try max num'))
+    const cat = tagId || '全部'
+    const lasttime = page == 1 ? 0 : this._highQualityCursor.get(`${cat}__${page}`)
+    if (lasttime == null) return Promise.reject(new Error('highquality cursor not found'))
+    if (this._requestObj_list) this._requestObj_list.cancelHttp()
+    this._requestObj_list = httpFetch('https://music.163.com/weapi/playlist/highquality/list', {
+      method: 'post',
+      form: weapi({
+        cat,
+        limit: this.limit_list,
+        lasttime,
+        total: true,
+      }),
+    })
+    return this._requestObj_list.promise.then(({ body }) => {
+      if (body.code !== this.successCode) return this.getHighQualityList(tagId, page, ++tryNum)
+      this._highQualityCursor.set(`${cat}__${page + 1}`, body.lasttime)
+      return {
+        list: this.filterList(body.playlists),
+        total: parseInt(body.total),
+        page,
+        limit: this.limit_list,
+        source: 'wy',
+      }
+    })
+  },
+  // 曲风歌单:tagId 为曲风 id,未选时默认「流行」
+  getStyleList(tagId, page, tryNum = 0) {
+    if (tryNum > 2) return Promise.reject(new Error('try max num'))
+    if (this._requestObj_list) this._requestObj_list.cancelHttp()
+    this._requestObj_list = httpFetch('https://music.163.com/weapi/style-tag/home/playlist', {
+      method: 'post',
+      form: weapi({
+        cursor: this.limit_list * (page - 1),
+        size: this.limit_list,
+        tagId: parseInt(tagId || '1000'),
+        sort: 0,
+      }),
+    })
+    return this._requestObj_list.promise.then(({ body }) => {
+      if (body.code !== this.successCode) return this.getStyleList(tagId, page, ++tryNum)
+      return {
+        list: body.data.playlist.map(item => ({
+          play_count: formatPlayCount(item.playCount),
+          id: String(item.id),
+          author: item.userName,
+          name: item.name,
+          time: '',
+          img: item.cover,
+          total: item.songCount,
+          desc: '',
+          source: 'wy',
+        })),
+        total: body.data.page.total,
+        page,
+        limit: this.limit_list,
+        source: 'wy',
+      }
+    })
+  },
+  getHotList(sortId, tagId, page, tryNum = 0) {
     if (tryNum > 2) return Promise.reject(new Error('try max num'))
     if (this._requestObj_list) this._requestObj_list.cancelHttp()
     this._requestObj_list = httpFetch('https://music.163.com/weapi/playlist/list', {
@@ -221,7 +349,7 @@ export default {
     })
     return this._requestObj_list.promise.then(({ body }) => {
       // console.log(body)
-      if (body.code !== this.successCode) return this.getList(sortId, tagId, page, ++tryNum)
+      if (body.code !== this.successCode) return this.getHotList(sortId, tagId, page, ++tryNum)
       return {
         list: this.filterList(body.playlists),
         total: parseInt(body.total),
@@ -307,7 +435,41 @@ export default {
     }))
   },
 
-  getTags() {
+  // 曲风标签:顶层曲风作为热门,每个顶层曲风与其全部子孙曲风组成一个分组
+  getStyleTags(tryNum = 0) {
+    if (this._requestObj_tags) this._requestObj_tags.cancelHttp()
+    if (tryNum > 2) return Promise.reject(new Error('try max num'))
+    this._requestObj_tags = httpFetch('https://music.163.com/weapi/tag/list/get', {
+      method: 'post',
+      form: weapi({}),
+    })
+    return this._requestObj_tags.promise.then(({ body }) => {
+      if (body.code !== this.successCode) return this.getStyleTags(++tryNum)
+      const toTag = (item, parent) => ({
+        parent_id: String(parent.tagId),
+        parent_name: parent.tagName,
+        id: String(item.tagId),
+        name: item.tagName,
+        source: 'wy',
+      })
+      const flatten = item => [item, ...(item.childrenTags ?? []).flatMap(flatten)]
+      return {
+        tags: body.data.map(parent => ({
+          name: parent.tagName,
+          list: flatten(parent).map(item => toTag(item, parent)),
+          source: 'wy',
+        })),
+        hotTag: body.data.map(parent => toTag(parent, parent)),
+        source: 'wy',
+      }
+    })
+  },
+  // 不同排序使用的分类体系:曲风使用独立的曲风标签
+  getTagType(sortId) {
+    return sortId == 'style' ? 'style' : ''
+  },
+  getTags(sortId) {
+    if (this.getTagType(sortId) == 'style') return this.getStyleTags()
     return Promise.all([this.getTag(), this.getHotTag()]).then(([tags, hotTag]) => ({ tags, hotTag, source: 'wy' }))
   },
 

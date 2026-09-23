@@ -25,6 +25,7 @@ export interface HeaderBarProps {
 
 export interface HeaderBarType {
   setSource: (source: Source, sortId: string, tagName: string, tagId: string) => void
+  setSortId: (sortId: string, resetTag: boolean) => void
 }
 
 
@@ -38,9 +39,12 @@ export default forwardRef<HeaderBarType, HeaderBarProps>(({ onSortChange, onTagC
   useImperativeHandle(ref, () => ({
     setSource(source, sortId, tagName, tagId) {
       sortTabRef.current?.setSource(source, sortId)
-      tagRef.current?.setSelectedTagInfo(source, tagName, tagId)
+      tagRef.current?.setSelectedTagInfo(source, tagName, tagId, sortId)
       sourceSelectorRef.current?.setSource(source)
       openListRef.current?.setInfo(source)
+    },
+    setSortId(sortId, resetTag) {
+      tagRef.current?.setSortId(sortId, resetTag)
     },
   }), [])
 

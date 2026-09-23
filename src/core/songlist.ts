@@ -21,14 +21,38 @@ export const getSortList = (source: LX.OnlineSource) => {
   return songlistState.sortList[source]!
 }
 
+const extraTagsCache = new Map<string, TagInfo>()
+
+/**
+ * 获取排序对应的分类体系,空字符串表示默认分类(如网易「曲风」排序使用独立的曲风标签)
+ * @param source
+ * @param sortId
+ * @returns
+ */
+export const getTagType = (source: LX.OnlineSource, sortId?: string): string => {
+  const songList = musicSdk[source]?.songList as { getTagType?: (sortId?: string) => string } | undefined
+  return songList?.getTagType?.(sortId) ?? ''
+}
+
 /**
  * 获取标签列表
  * @param source
+ * @param sortId 当前排序,用于获取该排序对应的分类
  * @returns
  */
-export const getTags = async<T extends LX.OnlineSource>(source: T) => {
+export const getTags = async<T extends LX.OnlineSource>(source: T, sortId?: string) => {
+  const tagType = getTagType(source, sortId)
+  const songList = musicSdk[source]?.songList as { getTags: (sortId?: string) => Promise<TagInfo<T>> }
+  if (tagType) {
+    const key = `${source}__${tagType}`
+    const cached = extraTagsCache.get(key)
+    if (cached) return cached as TagInfo<T>
+    const info = await songList.getTags(sortId)
+    extraTagsCache.set(key, info)
+    return info
+  }
   if (songlistState.tags[source]) return songlistState.tags[source] as TagInfo<T>
-  const info = await (musicSdk[source]?.songList.getTags() as Promise<TagInfo<T>>)
+  const info = await songList.getTags()
   songlistActions.setTags(info, source)
   return info
 }

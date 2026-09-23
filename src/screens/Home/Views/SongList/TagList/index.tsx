@@ -12,14 +12,14 @@ export default () => {
 
   useEffect(() => {
     let isInited = false
-    const handleShow = (source: Source, id: string) => {
+    const handleShow = (source: Source, id: string, sortId: string) => {
       if (isInited) {
-        listRef.current?.loadTag(source, id)
+        listRef.current?.loadTag(source, id, sortId)
       } else {
         requestAnimationFrame(() => {
           setVisible(true)
           requestAnimationFrame(() => {
-            listRef.current?.loadTag(source, id)
+            listRef.current?.loadTag(source, id, sortId)
           })
         })
         isInited = true

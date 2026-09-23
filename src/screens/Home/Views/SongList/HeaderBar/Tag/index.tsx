@@ -10,14 +10,16 @@ export interface TagProps {
 }
 
 export interface TagType {
-  setSelectedTagInfo: (source: Source, name: string, activeId: string) => void
+  setSelectedTagInfo: (source: Source, name: string, activeId: string, sortId: string) => void
+  /** 切换排序;resetTag 为 true 时(分类体系改变)重置为默认分类 */
+  setSortId: (sortId: string, resetTag: boolean) => void
 }
 
 export default forwardRef<TagType, TagProps>(({ onTagChange }, ref) => {
   // console.log('render tag btn')
   const currentTagBtnRef = useRef<CurrentTagBtnType>(null)
   // const tagPopupRef = useRef<TagPopupType>(null)
-  const tagInfoRef = useRef<{ source: Source, activeId: string }>({ source: 'kw', activeId: '' })
+  const tagInfoRef = useRef<{ source: Source, activeId: string, sortId: string }>({ source: 'kw', activeId: '', sortId: '' })
 
   useEffect(() => {
     const handleChange = (name: string, id: string) => {
@@ -33,15 +35,22 @@ export default forwardRef<TagType, TagProps>(({ onTagChange }, ref) => {
   }, [onTagChange])
 
   useImperativeHandle(ref, () => ({
-    setSelectedTagInfo(source, name, activeId) {
+    setSelectedTagInfo(source, name, activeId, sortId) {
       tagInfoRef.current.activeId = activeId
       tagInfoRef.current.source = source
+      tagInfoRef.current.sortId = sortId
       currentTagBtnRef.current?.setCurrentTagInfo(name)
+    },
+    setSortId(sortId, resetTag) {
+      tagInfoRef.current.sortId = sortId
+      if (!resetTag) return
+      tagInfoRef.current.activeId = ''
+      currentTagBtnRef.current?.setCurrentTagInfo('')
     },
   }))
 
   const handleShowList = () => {
-    global.app_event.showSonglistTagList(tagInfoRef.current.source, tagInfoRef.current.activeId)
+    global.app_event.showSonglistTagList(tagInfoRef.current.source, tagInfoRef.current.activeId, tagInfoRef.current.sortId)
   }
 
   // const handleChangeTag: TagProps['onTagChange'] = (name, id) => {

@@ -194,8 +194,8 @@ export class AppEvent extends Event {
     this.emit('changeHomePageScrollEnabled', enabled)
   }
 
-  showSonglistTagList(source: SonglistSource, activeId: string) {
-    this.emit('showSonglistTagList', source, activeId)
+  showSonglistTagList(source: SonglistSource, activeId: string, sortId: string) {
+    this.emit('showSonglistTagList', source, activeId, sortId)
   }
 
   hideSonglistTagList() {
