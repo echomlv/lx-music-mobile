@@ -93,7 +93,7 @@ export const getList = async(source: LX.OnlineSource, tabId: string, sortId: str
  * @param page 页数
  * @returns
  */
-const getListDetailLimit = async(source: LX.OnlineSource, id: string, page: number): Promise<ListDetailInfo> => {
+const getListDetailLimit = async(source: LX.OnlineSource, id: string, page: number, hostUin?: string): Promise<ListDetailInfo> => {
   const listKey = `sdetail__${source}__${id}`
   const prevPageKey = `sdetail__${source}__${id}__${page - 1}`
   const tempListKey = `sdetail__${source}__${id}__temp`
@@ -106,7 +106,9 @@ const getListDetailLimit = async(source: LX.OnlineSource, id: string, page: numb
     if (prevPageData) sourcePage = prevPageData.sourcePage
   }
 
-  return musicSdk[source]?.songList.getListDetail(id, sourcePage + 1).then((result: ListDetailInfo) => {
+  const getSourceListDetail = musicSdk[source]?.songList.getListDetail as ((id: string, page: number, hostUin?: string) => Promise<ListDetailInfo>) | undefined
+  if (!getSourceListDetail) return Promise.reject(new Error('source not found'))
+  return getSourceListDetail(id, sourcePage + 1, hostUin).then((result: ListDetailInfo) => {
     if (listCache !== cache.get(listKey)) return
     result.list = deduplicationList(result.list.map(m => toNewMusicInfo(m)) as LX.Music.MusicInfoOnline[])
     let p = page
@@ -142,7 +144,7 @@ const getListDetailLimit = async(source: LX.OnlineSource, id: string, page: numb
       p++
     } while (result.list.length > 0)
     return (listCache.get(`sdetail__${source}__${id}__${page}`) as DetailPageCache).data
-  }) ?? Promise.reject(new Error('source not found'))
+  }) as Promise<ListDetailInfo>
 }
 
 /**
@@ -170,7 +172,7 @@ export const clearListDetail = () => {
  * @param isRefresh 是否跳过缓存
  * @returns
  */
-export const getListDetail = async(id: string, source: LX.OnlineSource, page: number, isRefresh = false): Promise<ListDetailInfo> => {
+export const getListDetail = async(id: string, source: LX.OnlineSource, page: number, isRefresh = false, hostUin?: string): Promise<ListDetailInfo> => {
   const listKey = `sdetail__${source}__${id}`
   const pageKey = `sdetail__${source}__${id}__${page}`
 
@@ -182,7 +184,7 @@ export const getListDetail = async(id: string, source: LX.OnlineSource, page: nu
   let pageCache = listCache.get(pageKey) as DetailPageCache
   if (pageCache) return pageCache.data
 
-  return getListDetailLimit(source, id, page)
+  return getListDetailLimit(source, id, page, hostUin)
 }
 
 /**
@@ -192,7 +194,7 @@ export const getListDetail = async(id: string, source: LX.OnlineSource, page: nu
  * @param isRefresh 是否跳过缓存
  * @returns
  */
-export const getListDetailAll = async(source: LX.OnlineSource, id: string, isRefresh = false): Promise<LX.Music.MusicInfoOnline[]> => {
+export const getListDetailAll = async(source: LX.OnlineSource, id: string, isRefresh = false, hostUin?: string): Promise<LX.Music.MusicInfoOnline[]> => {
   // console.log(tabId)
   const listKey = `sdetail__${source}__${id}`
   let listCache = cache.get(listKey) as LimitDetailCache
@@ -204,7 +206,7 @@ export const getListDetailAll = async(source: LX.OnlineSource, id: string, isRef
     const pageKey = `sdetail__${source}__${id}__${page}`
     let pageCache = listCache.get(pageKey) as DetailPageCache
     if (pageCache) return pageCache.data
-    return getListDetailLimit(source, id, page)
+    return getListDetailLimit(source, id, page, hostUin)
   }
   return loadData(1).then(async result => {
     if (result.total <= result.limit) return result.list

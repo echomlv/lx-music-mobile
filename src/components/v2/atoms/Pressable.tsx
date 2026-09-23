@@ -4,6 +4,7 @@ import { useDesignTokens } from '@/theme/v2'
 
 export interface V2PressableProps extends Omit<PressableProps, 'style' | 'children'> {
   style?: StyleProp<ViewStyle>
+  pressableStyle?: StyleProp<ViewStyle>
   /** 按下时的缩放因子(0~1),默认 0.97 */
   pressScale?: number
   /** 按下时叠加的 overlay 透明度(0~1),默认 0.06 */
@@ -19,6 +20,7 @@ export interface V2PressableProps extends Omit<PressableProps, 'style' | 'childr
  */
 export const V2Pressable = memo(({
   style,
+  pressableStyle,
   pressScale = 0.97,
   pressOverlay = 0.06,
   onPressIn,
@@ -48,6 +50,7 @@ export const V2Pressable = memo(({
   return (
     <Animated.View style={[{ transform: [{ scale }] }, style]}>
       <RNPressable
+        style={pressableStyle}
         onPressIn={(e) => {
           animateTo(pressScale, pressOverlay)
           onPressIn?.(e)

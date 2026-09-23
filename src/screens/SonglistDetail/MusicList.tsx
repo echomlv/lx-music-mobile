@@ -11,17 +11,19 @@ export interface MusicListProps {
 }
 
 export interface MusicListType {
-  loadList: (source: LX.OnlineSource, listId: string) => void
+  loadList: (source: LX.OnlineSource, listId: string, hostUin?: string) => void
 }
 
 export default forwardRef<MusicListType, MusicListProps>(({ componentId }, ref) => {
   const listRef = useRef<OnlineListType>(null)
   const headerRef = useRef<HeaderType>(null)
   const isUnmountedRef = useRef(false)
+  const hostUinRef = useRef<string | undefined>()
   const info = useListInfo()
 
   useImperativeHandle(ref, () => ({
-    async loadList(source, id) {
+    async loadList(source, id, hostUin) {
+      hostUinRef.current = hostUin
       clearListDetail()
       const listDetailInfo = songlistState.listDetailInfo
       listRef.current?.setList([])
@@ -47,7 +49,7 @@ export default forwardRef<MusicListType, MusicListProps>(({ componentId }, ref) 
           playCount: (info.play_count ?? listDetailInfo.info.play_count) ?? '',
           imgUrl: info.img ?? listDetailInfo.info.img,
         })
-        return getListDetail(id, source, page).then((listDetail) => {
+        return getListDetail(id, source, page, false, hostUinRef.current).then((listDetail) => {
           const result = setListDetail(listDetail, id, page)
           if (isUnmountedRef.current) return
           requestAnimationFrame(() => {
@@ -85,7 +87,7 @@ export default forwardRef<MusicListType, MusicListProps>(({ componentId }, ref) 
   const handleRefresh: OnlineListProps['onRefresh'] = () => {
     const page = 1
     listRef.current?.setStatus('refreshing')
-    getListDetail(songlistState.listDetailInfo.id, songlistState.listDetailInfo.source, page, true).then((listDetail) => {
+    getListDetail(songlistState.listDetailInfo.id, songlistState.listDetailInfo.source, page, true, hostUinRef.current).then((listDetail) => {
       const result = setListDetail(listDetail, songlistState.listDetailInfo.id, page)
       if (isUnmountedRef.current) return
       listRef.current?.setList(result.list)
@@ -98,7 +100,7 @@ export default forwardRef<MusicListType, MusicListProps>(({ componentId }, ref) 
   const handleLoadMore: OnlineListProps['onLoadMore'] = () => {
     listRef.current?.setStatus('loading')
     const page = songlistState.listDetailInfo.list.length ? songlistState.listDetailInfo.page + 1 : 1
-    getListDetail(songlistState.listDetailInfo.id, songlistState.listDetailInfo.source, page).then((listDetail) => {
+    getListDetail(songlistState.listDetailInfo.id, songlistState.listDetailInfo.source, page, false, hostUinRef.current).then((listDetail) => {
       const result = setListDetail(listDetail, songlistState.listDetailInfo.id, page)
       if (isUnmountedRef.current) return
       listRef.current?.setList(result.list, true)
@@ -121,4 +123,3 @@ export default forwardRef<MusicListType, MusicListProps>(({ componentId }, ref) 
     // progressViewOffset={}
    />
 })
-

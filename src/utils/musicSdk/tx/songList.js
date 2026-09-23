@@ -248,7 +248,7 @@ export default {
     return id
   },
   // 获取歌曲列表内的音乐
-  async getListDetail2(id, tryNum = 0) {
+  async getListDetail2(id, tryNum = 0, hostUin = '') {
     if (tryNum > 2) return Promise.reject(new Error('try max num'))
 
     const requestObj_listDetail = httpFetch('https://u.y.qq.com/cgi-bin/musicu.fcg', {
@@ -279,14 +279,14 @@ export default {
             song_begin: 0,
             song_num: this.limit_song,
             onlysonglist: 0,
-            enc_host_uin: '',
+            enc_host_uin: hostUin,
           },
         },
       },
     })
     const { body } = await requestObj_listDetail.promise
     // console.log(body)
-    if (body.code !== this.successCode) return this.getListDetail2(id, ++tryNum)
+    if (body.code !== this.successCode) return this.getListDetail2(id, ++tryNum, hostUin)
     if (body.req_1.code !== this.successCode) throw new Error('failed')
 
     const result = body.req_1.data
@@ -307,7 +307,7 @@ export default {
     }
   },
   // 获取歌曲列表内的音乐
-  async getListDetail(id, tryNum = 0) {
+  async getListDetail(id, tryNum = 0, hostUin = '') {
     if (tryNum > 2) return Promise.reject(new Error('try max num'))
 
     id = await this.getListId(id)
@@ -320,8 +320,8 @@ export default {
     })
     const { body } = await requestObj_listDetail.promise
 
-    if (body.code !== this.successCode) return this.getListDetail(id, ++tryNum)
-    if (body.subcode !== this.successCode || !body.cdlist) return this.getListDetail2(id)
+    if (body.code !== this.successCode) return this.getListDetail(id, ++tryNum, hostUin)
+    if (body.subcode !== this.successCode || !body.cdlist) return this.getListDetail2(id, 0, hostUin)
     const cdlist = body.cdlist[0]
     return {
       list: this.filterListDetail(cdlist.songlist),
@@ -409,6 +409,7 @@ export default {
       play_count: formatPlayCount(item.listennum),
       id: String(item.dissid),
       author: decodeName(item.creator?.name),
+      hostUin: item.creator?.encrypt_uin,
       name: decodeName(item.dissname),
       time: dateFormat(item.createtime || item.modifytime, 'Y-M-D'),
       img: item.imgurl,

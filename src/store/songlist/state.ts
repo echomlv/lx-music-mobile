@@ -36,6 +36,7 @@ export declare interface ListInfoItem {
   desc?: string
   source: LX.OnlineSource
   total?: string
+  hostUin?: string
 }
 export declare interface ListInfo {
   list: ListInfoItem[]
@@ -122,4 +123,3 @@ for (const source of music.sources) {
 
 
 export default state
-

@@ -96,6 +96,7 @@ const ActionBarV2 = () => {
         variant="ghost"
         size="sm"
         label={t('back')}
+        leading={<Icon name="chevron-left" size={12} color={colors['c-font']} />}
         onPress={back}
         style={{ flex: 1 }}
       />
@@ -129,4 +130,3 @@ const styles = createStyle({
     textAlign: 'center',
   },
 })
-

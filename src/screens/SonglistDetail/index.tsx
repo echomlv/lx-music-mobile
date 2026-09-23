@@ -19,7 +19,7 @@ export default ({ componentId, info }: { componentId: string, info: ListInfoItem
 
     isUnmountedRef.current = false
 
-    musicListRef.current?.loadList(info.source, info.id)
+    musicListRef.current?.loadList(info.source, info.id, info.hostUin)
 
 
     return () => {

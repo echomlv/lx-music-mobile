@@ -64,6 +64,7 @@ export const PillButton = memo(({
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
+      pressableStyle={{ flex: 1, alignSelf: 'stretch' }}
       style={[
         {
           alignSelf: fullWidth ? 'stretch' : 'flex-start',
