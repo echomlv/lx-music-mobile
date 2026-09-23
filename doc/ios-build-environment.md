@@ -8,8 +8,8 @@
 - 完整版 Xcode，不仅是 Command Line Tools
 - Homebrew
 - Node.js 18，与仓库根目录的 `.nvmrc` 一致
-- Ruby `>= 2.6.10`，推荐 Ruby 3.2，与 iOS CI 一致
-- Bundler 与 CocoaPods
+- Ruby `>= 3.2.0`，与 iOS CI 一致
+- Bundler `4.0.21` 与 CocoaPods
 - Git
 
 仅构建 iOS 时，不需要安装 Android Studio、Android SDK 或 JDK。
@@ -83,7 +83,7 @@ npm -v
 
 ## 5. 安装 Ruby 与 Bundler
 
-仓库的 `Gemfile` 要求 Ruby `>= 2.6.10`。如果系统 Ruby 可以正常运行 Bundler，可以直接使用；为了与 CI 保持一致，推荐通过 rbenv 使用 Ruby 3.2。
+仓库的 `Gemfile` 要求 Ruby `>= 3.2.0`，Bundler 固定为 `4.0.21`。为了与 CI 保持一致，推荐使用 Ruby 3.2。
 
 ```bash
 brew install rbenv ruby-build
@@ -103,7 +103,7 @@ rbenv install -l | grep -E '^[[:space:]]*3\.2\.'
 rbenv install 3.2.9
 cd /path/to/lx-music-mobile
 rbenv shell 3.2.9
-gem install bundler
+gem install bundler -v 4.0.21
 ```
 
 如果 `3.2.9` 不在列表中，请替换为 `rbenv install -l` 显示的最新 Ruby 3.2 版本。
@@ -112,7 +112,7 @@ gem install bundler
 
 ```bash
 ruby -v
-bundle -v
+bundle _4.0.21_ -v
 ```
 
 不建议使用 `sudo gem install cocoapods`。本仓库通过 Bundler 管理 CocoaPods 版本。
@@ -135,14 +135,14 @@ npm ci
 
 ```bash
 cd /path/to/lx-music-mobile
-bundle install
+bundle _4.0.21_ install
 ```
 
 再安装 iOS Pods：
 
 ```bash
 cd ios
-NO_FLIPPER=1 bundle exec pod install --repo-update
+NO_FLIPPER=1 bundle _4.0.21_ exec pod install --repo-update
 ```
 
 必须使用 `NO_FLIPPER=1`，这与仓库的 iOS CI 配置一致，并能避免安装不需要的 Flipper 与 Boost 依赖。
@@ -278,7 +278,7 @@ echo "export NODE_BINARY=$(command -v node)" > ios/.xcode.env.local
 
 ```bash
 cd ios
-NO_FLIPPER=1 bundle exec pod install --repo-update
+NO_FLIPPER=1 bundle _4.0.21_ exec pod install --repo-update
 ```
 
 ### Pods 状态不完整或 workspace 无法打开
@@ -287,15 +287,15 @@ NO_FLIPPER=1 bundle exec pod install --repo-update
 
 ```bash
 cd ios
-NO_FLIPPER=1 bundle exec pod install --repo-update
+NO_FLIPPER=1 bundle _4.0.21_ exec pod install --repo-update
 ```
 
 如果仍然失败，可重新集成 Pods：
 
 ```bash
 cd ios
-bundle exec pod deintegrate
-NO_FLIPPER=1 bundle exec pod install --repo-update
+bundle _4.0.21_ exec pod deintegrate
+NO_FLIPPER=1 bundle _4.0.21_ exec pod install --repo-update
 ```
 
 ### LXLibFLAC 构建失败
@@ -313,7 +313,7 @@ xcrun --sdk iphonesimulator --show-sdk-path
 
 ```bash
 bundle config set --local force_ruby_platform true
-bundle install
+bundle _4.0.21_ install
 ```
 
 ## 14. 环境自检
@@ -325,7 +325,7 @@ node -v
 npm -v
 ruby -v
 bundle -v
-bundle exec pod --version
+bundle _4.0.21_ exec pod --version
 xcode-select -p
 xcodebuild -version
 test -d ios/LxMusicMobile.xcworkspace && echo "workspace ready"
@@ -334,7 +334,7 @@ test -d ios/LxMusicMobile.xcworkspace && echo "workspace ready"
 预期结果：
 
 - Node.js 为 `v18.x.x`
-- Ruby 满足 `>= 2.6.10`
-- CocoaPods 可以通过 `bundle exec pod` 运行
+- Ruby 满足 `>= 3.2.0`
+- CocoaPods 可以通过 `bundle _4.0.21_ exec pod` 运行
 - Xcode 路径指向完整 Xcode
 - `ios/LxMusicMobile.xcworkspace` 存在
