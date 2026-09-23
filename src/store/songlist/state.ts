@@ -2,7 +2,7 @@ import music from '@/utils/musicSdk'
 
 export declare interface SortInfo {
   name: string
-  tid: 'recommend' | 'hot' | 'new' | 'hot_collect' | 'rise' | 'highquality' | 'style' | 'official' | 'love' | 'classic' | 'label' | 'guofeng'
+  tid: 'recommend' | 'hot' | 'new' | 'hot_collect' | 'rise' | 'highquality' | 'style' | 'official' | 'love' | 'classic' | 'label' | 'guofeng' | 'travel'
   id: string
   /** 该排序本身即固定来源,不支持叠加分类 */
   disableTag?: boolean

@@ -21,6 +21,25 @@ export default {
       tid: 'hot',
       id: 'hot',
     },
+    // 以下为分类入口,id 即分类面板中的 `${id}-${digest}`
+    {
+      name: '情歌',
+      tid: 'love',
+      id: '2200-10000',
+      disableTag: true,
+    },
+    {
+      name: '经典',
+      tid: 'classic',
+      id: '1265-10000',
+      disableTag: true,
+    },
+    {
+      name: '旅行',
+      tid: 'travel',
+      id: '375-10000',
+      disableTag: true,
+    },
   ],
   regExps: {
     mInfo: /level:(\w+),bitrate:(\d+),format:(\w+),size:([\w.]+)/,
@@ -89,6 +108,8 @@ export default {
   getList(sortId, tagId, page, tryNum = 0) {
     if (this._requestObj_list) this._requestObj_list.cancelHttp()
     if (tryNum > 2) return Promise.reject(new Error('try max num'))
+    // 分类入口类排序:忽略所选分类,以排序 id 作为分类
+    if (this.sortList.find(s => s.id == sortId)?.disableTag) tagId = sortId
     let id
     let type
     if (tagId) {
