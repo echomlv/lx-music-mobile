@@ -108,8 +108,8 @@ LX Music(洛雪音乐)移动版的 iOS 适配分支。上游仓库 `lyswhut/lx-m
 | Xcode | ≥ 15(命令行工具已安装) | `xcode-select --install` 安装 CLT;首次运行 `sudo xcodebuild -license accept` |
 | Node.js | `v18`(见 `.nvmrc`) | 推荐用 nvm: `nvm install && nvm use` |
 | npm | ≥ 8.5.2 | 见 `package.json#engines` |
-| Ruby | ≥ 3.2.0(见 `Gemfile`) | 推荐 Homebrew、rbenv 或 rvm |
-| CocoaPods | `~> 1.12` | `bundle _4.0.21_ install` 后使用 Bundler 执行 |
+| Ruby | ≥ 2.6.10(见 `Gemfile`) | 系统自带或 rbenv/rvm |
+| CocoaPods | `~> 1.12` | `gem install cocoapods` 或 `bundle install` |
 | Watchman | 可选但推荐 | `brew install watchman` |
 
 ### 2. 一次性安装
@@ -121,8 +121,8 @@ npm install                          # 会自动执行 dependencies-patch.js 打
 
 # iOS 原生依赖(首次 pod install 较慢:会构建 LXLibFLAC.xcframework + 给 SwiftAudioEx 打补丁)
 cd ios
-bundle _4.0.21_ install              # 安装锁定的 Ruby 依赖
-pod install                          # 或: bundle _4.0.21_ exec pod install
+bundle install                       # 可选,锁定 CocoaPods 版本
+pod install                          # 或: bundle exec pod install
 cd ..
 ```
 
