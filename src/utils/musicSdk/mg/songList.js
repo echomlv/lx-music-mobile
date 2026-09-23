@@ -21,6 +21,32 @@ export default {
       tid: 'recommend',
       // id: '1',
     },
+    // 以下为网页歌单广场(music.migu.cn/v5/#/musicSquare)顶部的标签入口,id 即标签 id
+    {
+      name: '官方',
+      id: '1003449976',
+      tid: 'official',
+      disableTag: true,
+    },
+    {
+      name: '经典',
+      id: '1000001635',
+      tid: 'classic',
+      disableTag: true,
+    },
+    {
+      name: '厂牌',
+      id: '1003449727',
+      tid: 'label',
+      disableTag: true,
+    },
+    {
+      name: '国风',
+      id: '1000001675',
+      tid: 'guofeng',
+      disableTag: true,
+    },
+    // 「最新」依赖的 m.music.migu.cn/migu/remoting 接口已失效
     // {
     //   name: '最新',
     //   id: '15127272',
@@ -38,7 +64,12 @@ export default {
   tagsUrl: 'https://app.c.nf.migu.cn/pc/v1.0/template/musiclistplaza-taglist/release',
   // tagsUrl: 'https://app.c.nf.migu.cn/MIGUM3.0/v1.0/template/musiclistplaza-taglist/release',
   // tagsUrl: 'https://app.c.nf.migu.cn/MIGUM2.0/v1.0/content/indexTagPage.do?needAll=0',
+  // 推荐时使用所选分类(未选则为推荐页),其他排序本身就是标签入口
+  getListTagId(sortId, tagId) {
+    return sortId == this.sortList[0].id ? tagId : sortId
+  },
   getSongListUrl(sortId, tagId, page) {
+    tagId = this.getListTagId(sortId, tagId)
     // if (tagId == null) {
     //   return sortId == 'recommend'
     //     ? `https://music.migu.cn/v3/music/playlist?page=${page}&from=migu`
@@ -67,6 +98,12 @@ export default {
     // ua: 'Android_migu',
     // mode: 'android',
     // version: '6.8.5',
+  },
+  // 网页 SDK 的公共请求头,按标签取歌单时不带会得到与网页不同的结果
+  webSquareHeaders: {
+    version: '6.8.8',
+    IMEI: 'h5page',
+    recommendstatus: '1',
   },
 
   getListDetailList(id, page, tryNum = 0) {
@@ -161,7 +198,9 @@ export default {
     if (this._requestObj_list) this._requestObj_list.cancelHttp()
     if (tryNum > 2) return Promise.reject(new Error('try max num'))
     this._requestObj_list = httpFetch(this.getSongListUrl(sortId, tagId, page), {
-      headers: this.defaultHeaders,
+      headers: this.getListTagId(sortId, tagId)
+        ? { ...this.defaultHeaders, ...this.webSquareHeaders }
+        : this.defaultHeaders,
       // headers: {
       //   sign: 'c3b7ae985e2206e97f1b2de8f88691e2',
       //   timestamp: 1578225871982,
