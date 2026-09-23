@@ -205,6 +205,13 @@ npm start
 cd /path/to/lx-music-mobile
 nvm use
 npm run ios
+
+# 指定模拟器
+npm run ios -- --simulator="iPhone 16e (18.6)" --mode Debug --no-packager
+npm run ios -- --simulator="iPhone 16e (18.6)" --mode Release
+
+npm run ios -- --simulator="iPhone 16e (26.3.1)" --mode Debug --no-packager
+
 ```
 
 `npm run ios` 对应仓库的 `react-native run-ios` 脚本。首次编译会比较久；之后修改 JavaScript/TypeScript 代码通常由 Metro 刷新。只有依赖或原生代码发生变化时，才需要重新安装 Pods 或重新编译 App。
