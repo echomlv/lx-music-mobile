@@ -2,6 +2,12 @@ import { httpFetch } from '../../request'
 import { decodeName, formatPlayTime, sizeFormate, dateFormat, formatPlayCount } from '../../index'
 import { formatSingerName } from '../utils'
 
+const buildSearchId = () => {
+  let guid = ''
+  for (let i = 0; i < 32; i++) guid += Math.floor(Math.random() * 16).toString(16)
+  return guid.toUpperCase() + String(Math.floor(Math.random() * 100000)).padStart(5, '0')
+}
+
 export default {
   _requestObj_tags: null,
   _requestObj_hotTags: null,
@@ -398,44 +404,97 @@ export default {
     return `https://y.qq.com/n/ryqq/playlist/${id}`
   },
 
-  search(text, page, limit = 20, retryNum = 0) {
-    const url = `https://c.y.qq.com/soso/fcgi-bin/client_music_search_songlist?page_no=${page - 1}&num_per_page=${limit}&format=json&query=${encodeURIComponent(text)}&remoteplace=txt.yqq.playlist&inCharset=utf8&outCharset=utf-8`
-    const retry = (error) => {
-      if (retryNum >= 5) return Promise.reject(error)
-      return this.search(text, page, limit, retryNum + 1)
-    }
+  filterSearchList(rawList) {
+    return rawList.map(item => ({
+      play_count: formatPlayCount(item.listennum),
+      id: String(item.dissid),
+      author: decodeName(item.creator?.name),
+      name: decodeName(item.dissname),
+      time: dateFormat(item.createtime || item.modifytime, 'Y-M-D'),
+      img: item.imgurl,
+      total: item.song_count,
+      desc: decodeName(decodeName(item.introduction || '')).replace(/<br>/g, '\n'),
+      source: 'tx',
+    }))
+  },
 
+  searchByNewApi(text, page, limit) {
+    return httpFetch('https://u.y.qq.com/cgi-bin/musicu.fcg', {
+      method: 'post',
+      headers: {
+        Origin: 'https://y.qq.com',
+        Referer: 'https://y.qq.com/portal/search.html',
+      },
+      body: {
+        comm: {
+          _channelid: '0',
+          _os_version: '6.2.9200-2',
+          ct: '19',
+          cv: '2151',
+          guid: '1F70E520B2EAA7D25E11760783C53CA9',
+          patch: '118',
+          tmeAppID: 'qqmusic',
+          tmeLoginType: 0,
+          uin: '0',
+          wid: '7223299733393904640',
+        },
+        'music.search.SearchCgiService': {
+          module: 'music.search.SearchCgiService',
+          method: 'DoSearchForQQMusicDesktop',
+          param: {
+            grp: 1,
+            num_per_page: limit,
+            page_num: page,
+            query: text,
+            remoteplace: 'txt.newclient.top',
+            search_type: 3,
+            searchid: buildSearchId(),
+          },
+        },
+      },
+    }).promise.then(({ body, statusCode }) => {
+      const req = body?.['music.search.SearchCgiService']
+      const data = req?.data
+      const rawList = data?.body?.songlist?.list
+      if (statusCode !== 200 || body?.code !== this.successCode || req?.code !== this.successCode || !Array.isArray(rawList)) {
+        throw new Error(`tx song list search failed: ${body?.message || `HTTP ${statusCode}`}`)
+      }
+      return {
+        list: this.filterSearchList(rawList),
+        limit,
+        total: data.meta?.sum ?? rawList.length,
+        source: 'tx',
+      }
+    })
+  },
+
+  searchByLegacyApi(text, page, limit) {
+    const url = `https://c.y.qq.com/soso/fcgi-bin/client_music_search_songlist?page_no=${page - 1}&num_per_page=${limit}&format=json&query=${encodeURIComponent(text)}&remoteplace=txt.yqq.playlist&inCharset=utf8&outCharset=utf-8`
     return httpFetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)',
         Referer: 'https://y.qq.com/portal/search.html',
       },
+    }).promise.then(({ body, statusCode }) => {
+      if (statusCode !== 200 || body?.code !== this.successCode || !Array.isArray(body?.data?.list)) {
+        throw new Error(`tx legacy song list search failed: ${body?.message || `HTTP ${statusCode}`}`)
+      }
+      return {
+        list: this.filterSearchList(body.data.list),
+        limit,
+        total: body.data.sum,
+        source: 'tx',
+      }
     })
-      .promise.then(({ body, statusCode }) => {
-        if (statusCode !== 200 || body?.code !== 0 || !Array.isArray(body?.data?.list)) {
-          throw new Error(`tx song list search failed: ${body?.message || `HTTP ${statusCode}`}`)
-        }
+  },
 
-        return {
-          list: body.data.list.map(item => {
-            return {
-              play_count: formatPlayCount(item.listennum),
-              id: String(item.dissid),
-              author: decodeName(item.creator?.name),
-              name: decodeName(item.dissname),
-              time: dateFormat(item.createtime, 'Y-M-D'),
-              img: item.imgurl,
-              // grade: item.favorcnt / 10,
-              total: item.song_count,
-              desc: decodeName(decodeName(item.introduction || '')).replace(/<br>/g, '\n'),
-              source: 'tx',
-            }
-          }),
-          limit,
-          total: body.data.sum,
-          source: 'tx',
-        }
-      })
+  search(text, page, limit = 20, retryNum = 0) {
+    const retry = (error) => {
+      if (retryNum >= 2) return Promise.reject(error)
+      return this.search(text, page, limit, retryNum + 1)
+    }
+    return this.searchByNewApi(text, page, limit)
+      .catch(() => this.searchByLegacyApi(text, page, limit))
       .catch(retry)
   },
 }
