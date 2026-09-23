@@ -14,8 +14,10 @@ import CommentBtn from './CommentBtn'
 import Btn from './Btn'
 import SettingPopup, { type SettingPopupType } from '../../components/SettingPopup'
 import SoundEffectPopup, { type SoundEffectPopupType } from '../../components/SoundEffectPopup'
-import { useSetting } from '@/store/setting/hook'
+import { useSetting, useSettingValue } from '@/store/setting/hook'
 import { isSoundEffectActive } from '@/plugins/player/soundEffect'
+import { useDesignTokens } from '@/theme/v2'
+import { Surface, Typography } from '@/components/v2/atoms'
 
 export const HEADER_HEIGHT = scaleSizeH(_HEADER_HEIGHT)
 
@@ -32,11 +34,25 @@ const Title = () => {
   )
 }
 
+const TitleV2 = () => {
+  const { semanticColors } = useDesignTokens()
+  const musicInfo = usePlayerMusicInfo()
+
+  return (
+    <View style={styles.titleContent}>
+      <Typography variant="body" weight="600" numberOfLines={1}>{musicInfo.name}</Typography>
+      <Typography variant="caption" color={semanticColors.textSecondary} numberOfLines={1}>{musicInfo.singer}</Typography>
+    </View>
+  )
+}
+
 export default memo(() => {
   const popupRef = useRef<SettingPopupType>(null)
   const soundEffectPopupRef = useRef<SoundEffectPopupType>(null)
   const theme = useTheme()
   const setting = useSetting()
+  const useModernUI = useSettingValue('theme.useModernUI')
+  const { tokens, colors } = useDesignTokens()
 
   const back = () => {
     void pop(commonState.componentIds.playDetail!)
@@ -48,17 +64,32 @@ export default memo(() => {
     soundEffectPopupRef.current?.show()
   }
 
+  const content = (
+    <View style={styles.container}>
+      <TouchableOpacity onPress={back} style={{ ...styles.button, width: HEADER_HEIGHT }}>
+        <Icon name="chevron-left" size={18} />
+      </TouchableOpacity>
+      {useModernUI ? <TitleV2 /> : <Title />}
+      <CommentBtn />
+      <Btn icon="slider" color={isSoundEffectActive(setting) ? theme['c-primary-font-active'] : undefined} onPress={showSoundEffect} />
+      <Btn icon="setting" size={18} onPress={showSetting} />
+    </View>
+  )
+
   return (
     <View style={{ height: HEADER_HEIGHT }} nativeID={NAV_SHEAR_NATIVE_IDS.playDetail_header}>
-      <View style={styles.container}>
-        <TouchableOpacity onPress={back} style={{ ...styles.button, width: HEADER_HEIGHT }}>
-          <Icon name="chevron-left" size={18} />
-        </TouchableOpacity>
-        <Title />
-        <CommentBtn />
-        <Btn icon="slider" color={isSoundEffectActive(setting) ? theme['c-primary-font-active'] : undefined} onPress={showSoundEffect} />
-        <Btn icon="setting" size={18} onPress={showSetting} />
-      </View>
+      {useModernUI
+        ? (
+            <Surface
+              variant="blur"
+              radius="none"
+              elevation="none"
+              style={{ flex: 1, paddingHorizontal: tokens.spacing.xs, borderBottomWidth: 1, borderBottomColor: colors['c-border-background'] }}
+            >
+              {content}
+            </Surface>
+          )
+        : content}
       <SoundEffectPopup ref={soundEffectPopupRef} position="bottom" layoutMode="split" />
       <SettingPopup ref={popupRef} position="left" direction="horizontal" />
     </View>

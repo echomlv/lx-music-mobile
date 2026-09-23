@@ -5,9 +5,12 @@ import Progress from '@/components/player/ProgressBar'
 import Status from './Status'
 import { useProgress } from '@/store/player/hook'
 import { useTheme } from '@/store/theme/hook'
+import { useSettingValue } from '@/store/setting/hook'
 import { createStyle } from '@/utils/tools'
 import Text from '@/components/common/Text'
 import { useBufferProgress } from '@/plugins/player'
+import { useDesignTokens } from '@/theme/v2'
+import { Typography } from '@/components/v2/atoms'
 
 // const FONT_SIZE = 13
 
@@ -23,6 +26,8 @@ const PlayTimeMax = memo(({ timeStr }: { timeStr: string }) => {
 })
 
 export default () => {
+  const useModernUI = useSettingValue('theme.useModernUI')
+  const { semanticColors } = useDesignTokens()
   const { maxPlayTimeStr, nowPlayTimeStr, progress, maxPlayTime } = useProgress()
   const buffered = useBufferProgress()
 
@@ -32,11 +37,15 @@ export default () => {
     <>
       <View style={styles.progress}><Progress progress={progress} duration={maxPlayTime} buffered={buffered} /></View>
       <View style={styles.info}>
-        <PlayTimeCurrent timeStr={nowPlayTimeStr} />
+        {useModernUI
+          ? <Typography variant="caption" color={semanticColors.textSecondary}>{nowPlayTimeStr}</Typography>
+          : <PlayTimeCurrent timeStr={nowPlayTimeStr} />}
         <View style={styles.status} >
           <Status />
         </View>
-        <PlayTimeMax timeStr={maxPlayTimeStr} />
+        {useModernUI
+          ? <Typography variant="caption" color={semanticColors.textSecondary}>{maxPlayTimeStr}</Typography>
+          : <PlayTimeMax timeStr={maxPlayTimeStr} />}
       </View>
     </>
   )

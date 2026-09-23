@@ -9,6 +9,8 @@ import { useSettingValue } from '@/store/setting/hook'
 import { createStyle } from '@/utils/tools'
 import Text from '@/components/common/Text'
 import { useBufferProgress } from '@/plugins/player'
+import { useDesignTokens } from '@/theme/v2'
+import { Typography } from '@/components/v2/atoms'
 
 // const FONT_SIZE = 13
 
@@ -26,6 +28,7 @@ const PlayTimeMax = memo(({ timeStr }: { timeStr: string }) => {
 export default () => {
   const theme = useTheme()
   const useModernUI = useSettingValue('theme.useModernUI')
+  const { semanticColors } = useDesignTokens()
   const { maxPlayTimeStr, nowPlayTimeStr, progress, maxPlayTime } = useProgress()
   const buffered = useBufferProgress()
 
@@ -35,9 +38,15 @@ export default () => {
         <Status />
       </View>
       <View style={{ flexGrow: 0, flexShrink: 0, flexDirection: 'row' }} >
-        <PlayTimeCurrent timeStr={nowPlayTimeStr} />
-        <Text color={theme['c-500']}> / </Text>
-        <PlayTimeMax timeStr={maxPlayTimeStr} />
+        {useModernUI
+          ? <Typography variant="caption" color={semanticColors.textSecondary}>{nowPlayTimeStr} / {maxPlayTimeStr}</Typography>
+          : (
+              <>
+                <PlayTimeCurrent timeStr={nowPlayTimeStr} />
+                <Text color={theme['c-500']}> / </Text>
+                <PlayTimeMax timeStr={maxPlayTimeStr} />
+              </>
+            )}
       </View>
       <View style={[StyleSheet.absoluteFill, styles.progress]}>
         <Progress

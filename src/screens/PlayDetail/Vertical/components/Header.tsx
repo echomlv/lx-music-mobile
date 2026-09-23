@@ -13,10 +13,12 @@ import commonState from '@/store/common/state'
 import SettingPopup, { type SettingPopupType } from '../../components/SettingPopup'
 import SoundEffectPopup, { type SoundEffectPopupType } from '../../components/SoundEffectPopup'
 import { useStatusbarHeight } from '@/store/common/hook'
-import { useSetting } from '@/store/setting/hook'
+import { useSetting, useSettingValue } from '@/store/setting/hook'
 import { isSoundEffectActive } from '@/plugins/player/soundEffect'
 import Btn from './Btn'
 import TimeoutExitBtn from './TimeoutExitBtn'
+import { useDesignTokens } from '@/theme/v2'
+import { Surface, Typography } from '@/components/v2/atoms'
 
 export const HEADER_HEIGHT = scaleSizeH(_HEADER_HEIGHT)
 
@@ -34,12 +36,26 @@ const Title = () => {
   )
 }
 
+const TitleV2 = () => {
+  const { semanticColors } = useDesignTokens()
+  const musicInfo = usePlayerMusicInfo()
+
+  return (
+    <View style={styles.titleContent}>
+      <Typography variant="body" weight="600" numberOfLines={1}>{musicInfo.name}</Typography>
+      <Typography variant="caption" color={semanticColors.textSecondary} numberOfLines={1}>{musicInfo.singer}</Typography>
+    </View>
+  )
+}
+
 export default memo(() => {
   const popupRef = useRef<SettingPopupType>(null)
   const soundEffectPopupRef = useRef<SoundEffectPopupType>(null)
   const statusBarHeight = useStatusbarHeight()
   const theme = useTheme()
   const setting = useSetting()
+  const useModernUI = useSettingValue('theme.useModernUI')
+  const { tokens, colors } = useDesignTokens()
 
   const back = () => {
     void pop(commonState.componentIds.playDetail!)
@@ -51,16 +67,31 @@ export default memo(() => {
     soundEffectPopupRef.current?.show()
   }
 
+  const content = (
+    <View style={styles.container}>
+      <Btn icon="chevron-left" onPress={back} />
+      {useModernUI ? <TitleV2 /> : <Title />}
+      <TimeoutExitBtn />
+      <Btn icon="slider" color={isSoundEffectActive(setting) ? theme['c-primary-font-active'] : undefined} onPress={showSoundEffect} />
+      <Btn icon="setting" size={16} onPress={showSetting} />
+    </View>
+  )
+
   return (
     <View style={{ height: HEADER_HEIGHT + statusBarHeight, paddingTop: statusBarHeight }} nativeID={NAV_SHEAR_NATIVE_IDS.playDetail_header}>
       <StatusBar />
-      <View style={styles.container}>
-        <Btn icon="chevron-left" onPress={back} />
-        <Title />
-        <TimeoutExitBtn />
-        <Btn icon="slider" color={isSoundEffectActive(setting) ? theme['c-primary-font-active'] : undefined} onPress={showSoundEffect} />
-        <Btn icon="setting" size={16} onPress={showSetting} />
-      </View>
+      {useModernUI
+        ? (
+            <Surface
+              variant="blur"
+              radius="none"
+              elevation="none"
+              style={{ flex: 1, paddingHorizontal: tokens.spacing.xs, borderBottomWidth: 1, borderBottomColor: colors['c-border-background'] }}
+            >
+              {content}
+            </Surface>
+          )
+        : content}
       <SoundEffectPopup ref={soundEffectPopupRef} layoutMode="stacked" />
       <SettingPopup ref={popupRef} direction="vertical" />
     </View>
