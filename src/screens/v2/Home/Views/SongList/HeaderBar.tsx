@@ -43,30 +43,30 @@ export interface HeaderBarType {
 const SourceChip = forwardRef<{ setSource: (s: Source) => void }, {
   onSourceChange: SourceSelectorCommonProps['onSourceChange']
 }>(({ onSourceChange }, ref) => {
-  const { colors, tokens } = useDesignTokens()
-  const sourceSelectorRef = useRef<SourceSelectorCommonType>(null)
+    const { colors, tokens } = useDesignTokens()
+    const sourceSelectorRef = useRef<SourceSelectorCommonType>(null)
 
-  useImperativeHandle(ref, () => ({
-    setSource(source) {
-      sourceSelectorRef.current?.setSourceList(songlistState.sources, source)
-    },
-  }), [])
+    useImperativeHandle(ref, () => ({
+      setSource(source) {
+        sourceSelectorRef.current?.setSourceList(songlistState.sources, source)
+      },
+    }), [])
 
-  return (
-    <View
-      style={{
-        height: 32,
-        minWidth: 70,
-        paddingHorizontal: tokens.spacing.xs,
-        borderRadius: tokens.radius.pill,
-        backgroundColor: colors['c-primary-light-200-alpha-700'],
-        justifyContent: 'center',
-      }}
-    >
-      <SourceSelector ref={sourceSelectorRef} onSourceChange={onSourceChange} center fontSize={13} />
-    </View>
-  )
-})
+    return (
+      <View
+        style={{
+          height: 32,
+          minWidth: 70,
+          paddingHorizontal: tokens.spacing.xs,
+          borderRadius: tokens.radius.pill,
+          backgroundColor: colors['c-primary-light-200-alpha-700'],
+          justifyContent: 'center',
+        }}
+      >
+        <SourceSelector ref={sourceSelectorRef} onSourceChange={onSourceChange} center fontSize={13} />
+      </View>
+    )
+  })
 SourceChip.displayName = 'v2.SongList.SourceChip'
 
 // ---------------- Sort tab ----------------

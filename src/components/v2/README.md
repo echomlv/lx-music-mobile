@@ -9,7 +9,7 @@
 ```
 src/components/v2/
 ├── atoms/         # 最小可复用单元
-├── molecules/     # 由 atoms 组装的中等组件
+├── molecules/     # 由 atoms 组装的中等组件(SearchField/ListRow/SettingRow/SheetSurface...)
 ├── organisms/     # 屏幕级组合
 └── README.md
 ```
@@ -66,8 +66,11 @@ src/components/v2/
 **Showcase**
 - 「v2 视觉预览」追加 PlayerBar v2 实时预览节
 
-### ⏭️ 阶段 3 起
-主屏 v2(Home 竖+横屏:Search / SongList / Mylist / Leaderboard / Setting 5 tab 视觉换肤,卡片化列表),然后 PlayDetail 沉浸式封面 → SonglistDetail / Comment 收尾。
+### 🚧 阶段 3(进行中)
+- `molecules/` 基础组件已落地:SearchField、ListRow、SettingRow、EmptyState、SheetSurface
+- 在线歌曲列表、搜索框、多选底栏和 Popup 已按 `theme.useModernUI` 切换到 v2 视觉
+- Comment 卡片、回复区和正文展开按钮已接入 v2 token
+- 下一步:补齐 Home 五个入口的横屏细节,再完成 PlayDetail / SonglistDetail 的剩余旧列表和弹层
 
 ## 写组件的硬约束
 

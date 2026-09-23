@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { useDesignTokens } from '@/theme/v2'
 import { useStatusbarHeight } from '@/store/common/hook'
@@ -12,6 +12,8 @@ import {
   isBlurAvailable,
 } from '@/components/v2/atoms'
 import { PlayerBarV2 } from './PlayerBarV2'
+import { EmptyState, ListRow, SearchField, SettingRow, SheetSurface } from '@/components/v2/molecules'
+import { Icon } from '@/components/common/Icon'
 
 interface V2ShowcaseProps {
   onClose: () => void
@@ -26,6 +28,7 @@ interface V2ShowcaseProps {
 export const V2Showcase = memo(({ onClose }: V2ShowcaseProps) => {
   const { colors, tokens } = useDesignTokens()
   const statusBarHeight = useStatusbarHeight()
+  const [searchText, setSearchText] = useState('')
 
   return (
     <View style={{ flex: 1, backgroundColor: colors['c-content-background'] }}>
@@ -72,6 +75,40 @@ export const V2Showcase = memo(({ onClose }: V2ShowcaseProps) => {
           <Card variant="solid" elevation="md" padding="xxl">
             <Typography variant="title">大间距卡片</Typography>
           </Card>
+        </Section>
+
+        <Section title="Molecules · 页面基础组件">
+          <SearchField
+            value={searchText}
+            onChangeText={setSearchText}
+            onClear={() => { setSearchText('') }}
+            placeholder="搜索歌曲、歌手或歌单"
+            leading={<Icon name="search-2" size={15} color={colors['c-font-label']} />}
+          />
+          <ListRow
+            title="歌曲列表行"
+            subtitle="歌手 · 专辑"
+            leading={<Icon name="album" size={20} color={colors['c-primary']} />}
+            trailing={<Icon name="chevron-right" size={14} color={colors['c-font-label']} />}
+            selected
+          />
+          <SettingRow
+            label="设置行"
+            description="控制件由业务组件注入"
+            showChevron
+            onPress={() => {}}
+          />
+          <EmptyState
+            title="暂无内容"
+            description="这里可以放置空态或错误态操作"
+            action={<PillButton label="重新加载" onPress={() => {}} size="sm" />}
+            style={{ minHeight: 160 }}
+          />
+          <SheetSurface title="Sheet 标题" onClose={() => {}}>
+            <Typography variant="body" style={{ padding: tokens.spacing.lg }}>
+              SheetSurface 只负责视觉容器，显示和拖拽由现有弹层管理。
+            </Typography>
+          </SheetSurface>
         </Section>
 
         <Section title="Typography · 字号层级">

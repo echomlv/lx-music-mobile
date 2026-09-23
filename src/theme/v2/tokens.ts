@@ -37,7 +37,7 @@ export const elevation: Record<'none' | 'sm' | 'md' | 'lg' | 'xl', ViewStyle> = 
   none: Platform.select({
     ios: { shadowOpacity: 0 },
     default: { elevation: 0 },
-  })!,
+  }),
   sm: Platform.select({
     ios: {
       shadowColor: '#000',
@@ -46,7 +46,7 @@ export const elevation: Record<'none' | 'sm' | 'md' | 'lg' | 'xl', ViewStyle> = 
       shadowRadius: 2,
     },
     default: { elevation: 1 },
-  })!,
+  }),
   md: Platform.select({
     ios: {
       shadowColor: '#000',
@@ -55,7 +55,7 @@ export const elevation: Record<'none' | 'sm' | 'md' | 'lg' | 'xl', ViewStyle> = 
       shadowRadius: 6,
     },
     default: { elevation: 3 },
-  })!,
+  }),
   lg: Platform.select({
     ios: {
       shadowColor: '#000',
@@ -64,7 +64,7 @@ export const elevation: Record<'none' | 'sm' | 'md' | 'lg' | 'xl', ViewStyle> = 
       shadowRadius: 12,
     },
     default: { elevation: 6 },
-  })!,
+  }),
   xl: Platform.select({
     ios: {
       shadowColor: '#000',
@@ -73,7 +73,7 @@ export const elevation: Record<'none' | 'sm' | 'md' | 'lg' | 'xl', ViewStyle> = 
       shadowRadius: 24,
     },
     default: { elevation: 10 },
-  })!,
+  }),
 }
 export type ElevationToken = keyof typeof elevation
 

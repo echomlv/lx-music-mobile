@@ -122,11 +122,11 @@ const ListRow = memo(({ item, indexInAll, activeId, onPress, onShowMenu }: {
     </View>
   )
 }, (prev, next) => {
-  return prev.item === next.item
-    && prev.indexInAll === next.indexInAll
-    && prev.item.name === next.item.name
-    && prev.activeId !== prev.item.id
-    && next.activeId !== next.item.id
+  return prev.item === next.item &&
+    prev.indexInAll === next.indexInAll &&
+    prev.item.name === next.item.name &&
+    prev.activeId !== prev.item.id &&
+    next.activeId !== next.item.id
 })
 ListRow.displayName = 'v2.Mylist.ListRow'
 

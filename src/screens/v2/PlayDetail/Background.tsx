@@ -7,11 +7,7 @@ import { useHorizontalMode } from '@/utils/hooks'
 import { usePlayerMusicInfo } from '@/store/player/hook'
 import { isBlurAvailable } from '@/components/v2/atoms'
 import Image, { PLAYER_PIC_RETRY_COUNT } from '@/components/common/Image'
-
-let BlurView: typeof import('@react-native-community/blur').BlurView | null = null
-if (isBlurAvailable()) {
-  try { BlurView = require('@react-native-community/blur').BlurView } catch {}
-}
+import { BlurView } from '@react-native-community/blur'
 
 /**
  * v2 PlayDetail 沉浸背景层:封面 → 自适应模糊 → 顶/底主题色渐变收口。
@@ -33,7 +29,7 @@ export default memo(() => {
       {musicInfo.pic
         ? <Image url={musicInfo.pic} retryCount={PLAYER_PIC_RETRY_COUNT} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
         : <View style={[StyleSheet.absoluteFillObject, { backgroundColor: bg }]} />}
-      {BlurView
+      {isBlurAvailable()
         ? <BlurView style={StyleSheet.absoluteFillObject} blurType="regular" blurAmount={50} reducedTransparencyFallbackColor={bg} />
         : <View style={[StyleSheet.absoluteFillObject, { backgroundColor: bg, opacity: 0.85 }]} />}
       <View style={[StyleSheet.absoluteFillObject, { backgroundColor: bg, opacity: 0.55 }]} />

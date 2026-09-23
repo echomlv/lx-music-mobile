@@ -8,6 +8,8 @@ import { createStyle } from '@/utils/tools'
 import { useTheme } from '@/store/theme/hook'
 import Text from './Text'
 import { useStatusbarHeight } from '@/store/common/hook'
+import { useSettingValue } from '@/store/setting/hook'
+import { SheetSurface } from '@/components/v2/molecules'
 
 const styles = createStyle({
   centeredView: {
@@ -71,6 +73,7 @@ export default forwardRef<PopupType, PopupProps>(({
   children,
 }: PopupProps, ref) => {
   const theme = useTheme()
+  const useModernUI = useSettingValue('theme.useModernUI')
   const { keyboardShown, keyboardHeight } = useKeyboard()
   const statusBarHeight = useStatusbarHeight()
 
@@ -172,11 +175,25 @@ export default forwardRef<PopupType, PopupProps>(({
     <Modal onHide={onHide} keyHide={keyHide} bgHide={bgHide} bgColor="rgba(50,50,50,.2)" ref={modalRef}>
       <View style={{ ...styles.centeredView, ...centeredViewStyle, paddingBottom: keyboardShown ? keyboardHeight : 0 }}>
         <View style={{ ...styles.modalView, ...modalViewStyle, backgroundColor: theme['c-content-background'] }} onStartShouldSetResponder={() => true}>
-          <View style={styles.header}>
-            <Text size={13} style={styles.title} numberOfLines={1}>{title}</Text>
-            {closeBtnComponent}
-          </View>
-          {children}
+          {useModernUI
+            ? (
+                <SheetSurface
+                  title={title ?? undefined}
+                  onClose={closeBtn ? () => { modalRef.current?.setVisible(false) } : undefined}
+                  style={{ borderTopLeftRadius: 8, borderTopRightRadius: 8 }}
+                >
+                  {children}
+                </SheetSurface>
+              )
+            : (
+                <>
+                  <View style={styles.header}>
+                    <Text size={13} style={styles.title} numberOfLines={1}>{title}</Text>
+                    {closeBtnComponent}
+                  </View>
+                  {children}
+                </>
+              )}
         </View>
       </View>
     </Modal>

@@ -7,6 +7,9 @@ import { useTheme } from '@/store/theme/hook'
 import { createStyle } from '@/utils/tools'
 import { BorderWidths } from '@/theme'
 import { scaleSizeH } from '@/utils/pixelRatio'
+import { useSettingValue } from '@/store/setting/hook'
+import { useDesignTokens } from '@/theme/v2'
+import { Surface, Typography, V2Pressable } from '@/components/v2/atoms'
 
 export type SelectMode = 'single' | 'range'
 
@@ -33,6 +36,8 @@ export default forwardRef<MultipleModeBarType, MultipleModeBarProps>(({ onSelect
   const [selectMode, setSelectMode] = useState<SelectMode>('single')
   const [isSelectAll, setIsSelectAll] = useState(false)
   const theme = useTheme()
+  const useModernUI = useSettingValue('theme.useModernUI')
+  const { colors, tokens, semanticColors } = useDesignTokens()
 
   useImperativeHandle(ref, () => ({
     show() {
@@ -112,6 +117,78 @@ export default forwardRef<MultipleModeBarType, MultipleModeBarProps>(({ onSelect
   }, [isSelectAll, onSelectAll])
 
   const component = useMemo(() => {
+    if (useModernUI) {
+      return (
+        <Animated.View style={animaStyle}>
+          <Surface
+            variant="blur"
+            radius="none"
+            elevation="lg"
+            style={{ flex: 1, borderTopWidth: 1, borderTopColor: semanticColors.border }}
+          >
+            <View
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: tokens.spacing.sm,
+                gap: tokens.spacing.xs,
+              }}
+            >
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  padding: 2,
+                  borderRadius: tokens.radius.pill,
+                  backgroundColor: semanticColors.surfaceMuted,
+                }}
+              >
+                {(['single', 'range'] as const).map(mode => (
+                  <V2Pressable
+                    key={mode}
+                    onPress={() => { onSwitchMode(mode) }}
+                    style={{
+                      flex: 1,
+                      minHeight: 32,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: tokens.radius.pill,
+                      backgroundColor: selectMode == mode ? colors['c-primary'] : 'transparent',
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      weight="600"
+                      color={selectMode == mode ? colors['c-primary-light-1000'] : semanticColors.textSecondary}
+                    >
+                      {global.i18n.t(mode == 'single' ? 'list_select_single' : 'list_select_range')}
+                    </Typography>
+                  </V2Pressable>
+                ))}
+              </View>
+              <V2Pressable
+                onPress={handleSelectAll}
+                style={{ minHeight: 36, paddingHorizontal: tokens.spacing.sm, justifyContent: 'center' }}
+              >
+                <Typography variant="caption" weight="600" color={semanticColors.textSecondary}>
+                  {global.i18n.t(isSelectAll ? 'list_select_unall' : 'list_select_all')}
+                </Typography>
+              </V2Pressable>
+              <V2Pressable
+                onPress={onExitSelectMode}
+                style={{ minHeight: 36, paddingHorizontal: tokens.spacing.sm, justifyContent: 'center' }}
+              >
+                <Typography variant="caption" weight="600" color={semanticColors.textSecondary}>
+                  {global.i18n.t('list_select_cancel')}
+                </Typography>
+              </V2Pressable>
+            </View>
+          </Surface>
+        </Animated.View>
+      )
+    }
+
     return (
       <Animated.View style={animaStyle}>
         <View style={styles.switchBtn}>
@@ -130,7 +207,7 @@ export default forwardRef<MultipleModeBarType, MultipleModeBarProps>(({ onSelect
         </TouchableOpacity>
       </Animated.View>
     )
-  }, [animaStyle, selectMode, theme, handleSelectAll, isSelectAll, onExitSelectMode, onSwitchMode])
+  }, [animaStyle, selectMode, theme, handleSelectAll, isSelectAll, onExitSelectMode, onSwitchMode, useModernUI, colors, tokens, semanticColors])
 
   return !visible && animatePlayed ? null : component
 })

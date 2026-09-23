@@ -1,9 +1,8 @@
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react'
-import { TextInput, View, type StyleProp, type ViewStyle } from 'react-native'
+import { View, type StyleProp, type TextInput, type ViewStyle } from 'react-native'
 
 import { useDesignTokens } from '@/theme/v2'
 import { useI18n } from '@/lang'
-import { setSpText } from '@/utils/pixelRatio'
 import { Icon } from '@/components/common/Icon'
 
 import SourceSelector, {
@@ -13,7 +12,8 @@ import SourceSelector, {
 import { type Source as MusicSource } from '@/store/search/music/state'
 import { type Source as SonglistSource } from '@/store/search/songlist/state'
 
-import { IconButton, Surface } from '@/components/v2/atoms'
+import { Surface } from '@/components/v2/atoms'
+import { SearchField } from '@/components/v2/molecules'
 
 type Sources = Readonly<Array<MusicSource | SonglistSource>>
 type SourceSelectorProps = _SourceSelectorProps<Sources>
@@ -115,53 +115,20 @@ export default forwardRef<HeaderBarType, HeaderBarProps>(({
           />
         </View>
 
-        <View
-          style={{
-            flex: 1,
-            flexDirection: 'row',
-            alignItems: 'center',
-            height: 36,
-            paddingLeft: tokens.spacing.md,
-            paddingRight: tokens.spacing.xs,
-            borderRadius: tokens.radius.pill,
-            backgroundColor: colors['c-primary-input-background'],
-          }}
-        >
-          <Icon name="search-2" color={colors['c-font-label']} size={14} />
-          <TextInput
-            ref={inputRef}
-            value={text}
-            placeholder={t('search_input_placeholder')}
-            placeholderTextColor={colors['c-primary-dark-100-alpha-600']}
-            selectionColor={colors['c-primary-light-100-alpha-300']}
-            autoCapitalize="none"
-            autoComplete="off"
-            returnKeyType="search"
-            onChangeText={handleChange}
-            onTouchStart={onShowTipList}
-            onBlur={onHideTipList}
-            onSubmitEditing={handleSubmit}
-            style={{
-              flex: 1,
-              marginLeft: tokens.spacing.xs,
-              paddingVertical: 0,
-              color: colors['c-font'],
-              fontSize: setSpText(14),
-            }}
-          />
-          {text.length > 0
-            ? (
-                <IconButton
-                  name="remove"
-                  size={11}
-                  hitSize={28}
-                  radius="pill"
-                  onPress={handleClear}
-                  accessibilityLabel="clear"
-                />
-              )
-            : null}
-        </View>
+        <SearchField
+          value={text}
+          onChangeText={handleChange}
+          onTouchStart={onShowTipList}
+          onBlur={onHideTipList}
+          onSubmitEditing={handleSubmit}
+          onClear={handleClear}
+          placeholder={t('search_input_placeholder')}
+          selectionColor={colors['c-primary-light-100-alpha-300']}
+          autoCapitalize="none"
+          autoComplete="off"
+          returnKeyType="search"
+          leading={<Icon name="search-2" color={colors['c-font-label']} size={14} />}
+        />
       </View>
     </Surface>
   )

@@ -13,6 +13,7 @@ import { useI18n } from '@/lang'
 import Image from '@/components/common/Image'
 import CommentImage from './CommentImage'
 import CommentText from './CommentText'
+import { useDesignTokens } from '@/theme/v2'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const defaultUser = require('@/resources/images/defaultUser.jpg')
 
@@ -25,6 +26,7 @@ const CommentFloor = memo(({ comment, isLast }: {
 }) => {
   const theme = useTheme()
   const useModernUI = useSettingValue('theme.useModernUI')
+  const { tokens, semanticColors } = useDesignTokens()
   const [isAvatarError, setIsAvatarError] = useState(false)
   const { onLayout, width } = useLayout()
   const t = useI18n()
@@ -37,7 +39,13 @@ const CommentFloor = memo(({ comment, isLast }: {
     if (!comment.reply?.length) return null
     const endIndex = comment.reply.length - 1
     return (
-      <View style={{ ...styles.replyFloor, borderTopColor: theme['c-list-header-border-bottom'] }}>
+      <View style={{
+        ...styles.replyFloor,
+        borderTopColor: useModernUI ? semanticColors.border : theme['c-list-header-border-bottom'],
+        ...(useModernUI
+          ? { marginTop: tokens.spacing.md, marginLeft: 0, paddingTop: tokens.spacing.sm, borderStyle: 'solid' as const }
+          : {}),
+      }}>
         {
           comment.reply.map((c, index) => (
             <CommentFloor comment={c} isLast={index === endIndex} key={`${comment.id}_${c.id}`} />
@@ -45,9 +53,7 @@ const CommentFloor = memo(({ comment, isLast }: {
         }
       </View>
     )
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [comment.id, comment.reply, semanticColors.border, theme, tokens, useModernUI])
 
   const likedCount = useMemo(() => {
     if (comment.likedCount == null) return null
@@ -57,19 +63,35 @@ const CommentFloor = memo(({ comment, isLast }: {
         <Text style={styles.likedCount} size={12} color={ theme['c-450'] }>{comment.likedCount}</Text>
       </View>
     )
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [comment.likedCount, theme])
 
   return (
-    <View style={{ ...styles.container, borderBottomColor: theme['c-list-header-border-bottom'], borderBottomWidth: isLast ? 0 : BorderWidths.normal, paddingBottom: isLast ? 0 : GAP }}>
-      <View style={styles.comment}>
+    <View style={{
+      ...styles.container,
+      ...(useModernUI
+        ? {
+            marginTop: tokens.spacing.sm,
+            padding: tokens.spacing.md,
+            paddingBottom: tokens.spacing.md,
+            borderBottomWidth: 0,
+            borderRadius: tokens.radius.lg,
+            backgroundColor: semanticColors.surfaceElevated,
+            ...tokens.elevation.sm,
+          }
+        : {
+            borderBottomColor: theme['c-list-header-border-bottom'],
+            borderBottomWidth: isLast ? 0 : BorderWidths.normal,
+            paddingBottom: isLast ? 0 : GAP,
+          }),
+    }}>
+      <View style={{ ...styles.comment, ...(useModernUI ? { gap: tokens.spacing.sm } : {}) }}>
         <View>
           <Image
             url={comment.avatar && !isAvatarError ? comment.avatar : defaultUser}
             onError={handleAvatarError}
             style={useModernUI ? stylesRaw.avatarRound : stylesRaw.avatar} />
         </View>
-        <View style={styles.right}>
+        <View style={{ ...styles.right, ...(useModernUI ? { paddingLeft: 0 } : {}) }}>
           <View style={styles.info}>
             <View>
               <Text selectable numberOfLines={1} size={14}>
