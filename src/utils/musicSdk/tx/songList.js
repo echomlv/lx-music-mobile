@@ -41,6 +41,14 @@ export default {
       id: '59',
       disableTag: true,
     },
+    {
+      name: '旅行',
+      tid: 'travel',
+      id: '36',
+      disableTag: true,
+      // 首页「热门歌单」没有该分类;网页歌单广场用的是 get_category_content(首页接口的旅行数据停在 2018–2022)
+      listType: 'category',
+    },
   ],
   regExps: {
     hotTagHtml: /class="c_bg_link js_tag_item" data-id="\w+">.+?<\/a>/g,
@@ -177,11 +185,14 @@ export default {
   getList(sortId, tagId, page, tryNum = 0) {
     if (this._requestObj_list) this._requestObj_list.cancelHttp()
     if (tryNum > 2) return Promise.reject(new Error('try max num'))
-    // 推荐:未选分类时取推荐歌单,选了分类时取该分类
-    if (sortId == -1) {
-      if (!tagId) return this.getRecommendList(page)
+    // 推荐:未选分类时取推荐歌单,选了分类时取该分类;listType 为 category 的排序与网页歌单广场一致,同样按分类取
+    const categoryId = sortId == -1
+      ? tagId
+      : this.sortList.find(s => s.id == sortId)?.listType == 'category' ? sortId : null
+    if (sortId == -1 && !tagId) return this.getRecommendList(page)
+    if (categoryId) {
       this._requestObj_list = httpFetch(
-        this.getListUrl(tagId, page),
+        this.getListUrl(categoryId, page),
       )
       return this._requestObj_list.promise.then(({ body }) => {
         if (body.code !== this.successCode) return this.getList(sortId, tagId, page, ++tryNum)

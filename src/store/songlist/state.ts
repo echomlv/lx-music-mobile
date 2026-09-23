@@ -2,10 +2,12 @@ import music from '@/utils/musicSdk'
 
 export declare interface SortInfo {
   name: string
-  tid: 'recommend' | 'hot' | 'new' | 'hot_collect' | 'rise' | 'highquality' | 'style' | 'official' | 'love' | 'classic' | 'label' | 'guofeng' | 'travel'
+  tid: 'recommend' | 'hot' | 'new' | 'hot_collect' | 'rise' | 'highquality' | 'style' | 'official' | 'love' | 'classic' | 'travel' | 'folk'
   id: string
   /** 该排序本身即固定来源,不支持叠加分类 */
   disableTag?: boolean
+  /** 列表来源类型(tx:category 表示与网页歌单广场一致,按分类接口获取) */
+  listType?: 'category'
 }
 
 export declare interface TagInfoItem<T extends LX.OnlineSource = LX.OnlineSource> {

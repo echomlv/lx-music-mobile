@@ -21,7 +21,7 @@ export default {
       tid: 'recommend',
       // id: '1',
     },
-    // 以下为网页歌单广场(music.migu.cn/v5/#/musicSquare)顶部的标签入口,id 即标签 id
+    // 以下为网页歌单广场(music.migu.cn/v5/#/musicSquare)的标签入口,id 即标签 id
     {
       name: '官方',
       id: '1003449976',
@@ -35,15 +35,15 @@ export default {
       disableTag: true,
     },
     {
-      name: '厂牌',
-      id: '1003449727',
-      tid: 'label',
+      name: '民谣',
+      id: '1000001775',
+      tid: 'folk',
       disableTag: true,
     },
     {
-      name: '国风',
-      id: '1000001675',
-      tid: 'guofeng',
+      name: '旅行',
+      id: '1000001749',
+      tid: 'travel',
       disableTag: true,
     },
     // 「最新」依赖的 m.music.migu.cn/migu/remoting 接口已失效

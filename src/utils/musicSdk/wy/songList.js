@@ -19,6 +19,8 @@ export default {
   successCode: 200,
   cookie: 'MUSIC_U=',
   _highQualityCursor: new Map(),
+  // 歌单广场接口按分类取时每次返回的顺序会打乱,翻页会出现重复,记录已返回的歌单用于去重
+  _hotListSeen: { key: '', ids: new Set() },
   sortList: [
     {
       name: '推荐',
@@ -30,6 +32,12 @@ export default {
       name: '官方',
       tid: 'official',
       id: 'official',
+      disableTag: true,
+    },
+    {
+      name: '旅行',
+      tid: 'travel',
+      id: 'travel',
       disableTag: true,
     },
     {
@@ -235,6 +243,7 @@ export default {
       case 'recommend': return this.getRecommendList()
       // 官方歌单:歌单广场接口的「官方」分类(catalogue/hottags 中不提供),不与其他分类叠加
       case 'official': return this.getHotList('hot', '官方', page)
+      case 'travel': return this.getHotList('hot', '旅行', page)
       case 'highquality': return this.getHighQualityList(tagId, page)
       case 'style': return this.getStyleList(tagId, page)
       default: return this.getHotList(sortId, tagId, page)
@@ -352,8 +361,16 @@ export default {
     return this._requestObj_list.promise.then(({ body }) => {
       // console.log(body)
       if (body.code !== this.successCode) return this.getHotList(sortId, tagId, page, ++tryNum)
+      const key = `${sortId}__${tagId}`
+      if (page == 1 || this._hotListSeen.key != key) this._hotListSeen = { key, ids: new Set() }
+      const seen = this._hotListSeen.ids
+      const playlists = body.playlists.filter(item => {
+        if (seen.has(item.id)) return false
+        seen.add(item.id)
+        return true
+      })
       return {
-        list: this.filterList(body.playlists),
+        list: this.filterList(playlists),
         total: parseInt(body.total),
         page,
         limit: this.limit_list,
