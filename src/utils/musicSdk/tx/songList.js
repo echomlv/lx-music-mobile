@@ -320,8 +320,8 @@ export default {
     })
     const { body } = await requestObj_listDetail.promise
 
-    if (body.code !== this.successCode) return this.getListDetail(id, ++tryNum, hostUin)
-    if (body.subcode !== this.successCode || !body.cdlist) return this.getListDetail2(id, 0, hostUin)
+    // 旧接口对部分歌单(如官方歌单)固定返回 code 10,重试无效,直接走新接口(新接口自带重试)
+    if (body.code !== this.successCode || body.subcode !== this.successCode || !body.cdlist?.length) return this.getListDetail2(id, 0, hostUin)
     const cdlist = body.cdlist[0]
     return {
       list: this.filterListDetail(cdlist.songlist),
