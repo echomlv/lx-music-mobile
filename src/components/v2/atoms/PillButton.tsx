@@ -64,17 +64,21 @@ export const PillButton = memo(({
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
-      pressableStyle={{ flex: 1, alignSelf: 'stretch' }}
+      // 内容布局与内边距放在 Pressable 上,保证整个按钮区域可点击且图标与文字横向居中
+      pressableStyle={{
+        flexGrow: 1,
+        paddingHorizontal: dim.paddingH,
+        paddingVertical: dim.paddingV,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
       style={[
         {
           alignSelf: fullWidth ? 'stretch' : 'flex-start',
           backgroundColor: bg,
           borderRadius: tokens.radius.pill,
-          paddingHorizontal: dim.paddingH,
-          paddingVertical: dim.paddingV,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
+          overflow: 'hidden',
           opacity: disabled ? 0.4 : 1,
         },
         border,
