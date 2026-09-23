@@ -4,7 +4,7 @@ import BackgroundTimer from 'react-native-background-timer'
 import { updateMetaDataImmediately } from './playList'
 import { initUnifiedPlayerEngine, onUnifiedPlayerEvent } from './engine'
 import { getNativeFlacTrackId, setNativeFlacRate, setNativeFlacVolume } from './nativeFlac'
-import { getPosition, isEmpty, setStop } from './utils'
+import { getPosition, isEmpty, isTempId, setStop } from './utils'
 import { exitApp } from '@/core/common'
 import { playNext, setMusicUrl } from '@/core/player/player'
 import { setStatusText } from '@/core/player/playStatus'
@@ -104,13 +104,12 @@ export const initUnifiedPlayerController = () => {
   }
 
   onUnifiedPlayerEvent(async(event) => {
-    if (
-      event.driver == 'trackPlayer' &&
-      (
-        global.lx.gettingUrlId ||
-        (isEmpty(global.lx.playerTrackId) && /\/\/default\/\/restorePlay$/.test(global.lx.playerTrackId))
-      )
-    ) return
+    if (event.driver == 'trackPlayer') {
+      if (global.lx.gettingUrlId) return
+      // 忽略占位静音音轨(启动恢复时 initTrackInfo 放入的 //default 音轨)的状态/结束事件,
+      // 否则其 loading 状态会启动 25s 兜底计时器,超时后重新获取地址并自动开始播放
+      if ((event.type == 'state' || event.type == 'ended') && isTempId()) return
+    }
     switch (event.type) {
       case 'state':
         switch (event.state) {
