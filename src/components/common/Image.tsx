@@ -27,11 +27,16 @@ export const defaultHeaders = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36',
 }
 
+// 只编码 URL 中不合法的字符(中文、空格等),已有的 %XX 转义和保留字符原样保留;
+// 不能用 encodeURI(decodeURI(uri)):decodeURI 不解码 %2B、%3D 等保留字符,再 encodeURI 会把它们二次编码成 %252B,签名类 URL 会失效
 const encodeUriSafe = (uri: string) => {
   try {
-    return encodeURI(decodeURI(uri))
+    return uri
+      .replace(/[^A-Za-z0-9\-._~:/?#[\]@!$&'()*+,;=%]+/g, s => encodeURIComponent(s))
+      .replace(/%(?![0-9a-fA-F]{2})/g, '%25')
   } catch {
-    return encodeURI(uri)
+    // 含不完整的代理对等无法编码的字符时原样返回
+    return uri
   }
 }
 
