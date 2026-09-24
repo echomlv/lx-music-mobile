@@ -1,5 +1,5 @@
 import { memo, type ReactNode } from 'react'
-import { View, type StyleProp, type ViewStyle } from 'react-native'
+import { TouchableOpacity, View, type StyleProp, type ViewStyle } from 'react-native'
 
 import { useDesignTokens } from '@/theme/v2'
 import { Icon } from '@/components/common/Icon'
@@ -13,6 +13,8 @@ export interface SettingRowProps {
   showChevron?: boolean
   disabled?: boolean
   onPress?: () => void
+  /** 传入时在标题右侧显示帮助图标,点击触发 */
+  onHelp?: () => void
   style?: StyleProp<ViewStyle>
 }
 
@@ -25,6 +27,7 @@ export const SettingRow = memo(({
   showChevron = false,
   disabled = false,
   onPress,
+  onHelp,
   style,
 }: SettingRowProps) => {
   const { tokens, semanticColors } = useDesignTokens()
@@ -50,11 +53,27 @@ export const SettingRow = memo(({
       ]}
     >
       <View style={{ flex: 1, minWidth: 0, paddingRight: tokens.spacing.md }}>
-        <Typography variant="body" numberOfLines={1}>{label}</Typography>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Typography variant="body" numberOfLines={1} style={{ flexShrink: 1 }}>{label}</Typography>
+          {onHelp
+            ? (
+                <TouchableOpacity
+                  onPress={onHelp}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="help"
+                  style={{ marginLeft: tokens.spacing.xs }}
+                >
+                  <Icon name="help" size={14} color={semanticColors.textTertiary} />
+                </TouchableOpacity>
+              )
+            : null}
+        </View>
         {description
           ? (
               <Typography
-                variant="caption"
+                variant="label"
+                weight="400"
                 color={semanticColors.textSecondary}
                 numberOfLines={2}
                 style={{ marginTop: 2 }}

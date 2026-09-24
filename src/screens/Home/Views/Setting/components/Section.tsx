@@ -30,7 +30,7 @@ const SectionV2 = ({ title, children }: Props) => {
   return (
     <View style={{ marginBottom: tokens.spacing.lg }}>
       <Typography
-        variant="caption"
+        variant="label"
         weight="600"
         color={colors['c-font-label']}
         style={{
@@ -39,7 +39,7 @@ const SectionV2 = ({ title, children }: Props) => {
           marginBottom: tokens.spacing.xs,
         }}
       >
-        {title.toUpperCase()}
+        {title}
       </Typography>
       <Surface
         variant="solid"

@@ -12,18 +12,14 @@ export default memo(({ title, children }: {
   children: React.ReactNode | React.ReactNode[]
 }) => {
   const useModernUI = useSettingValue('theme.useModernUI')
-  const { colors, tokens } = useDesignTokens()
+  const { tokens } = useDesignTokens()
 
   if (useModernUI) {
+    // 与 SettingRow 同样的水平内边距和标题字号,让子标题类设置项与开关行对齐
     return (
-      <View style={{ marginBottom: tokens.spacing.lg }}>
-        <Typography
-          variant="caption"
-          weight="600"
-          color={colors['c-font-label']}
-          style={{ marginBottom: tokens.spacing.xs, letterSpacing: 0.5 }}
-        >
-          {title.toUpperCase()}
+      <View style={{ paddingHorizontal: tokens.spacing.md, paddingVertical: tokens.spacing.sm }}>
+        <Typography variant="body" weight="500" style={{ marginBottom: tokens.spacing.sm }}>
+          {title}
         </Typography>
         {children}
       </View>

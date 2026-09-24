@@ -5,6 +5,9 @@ import type { InputType, InputProps } from '@/components/common/Input'
 import Input from '@/components/common/Input'
 import { useTheme } from '@/store/theme/hook'
 import Text from '@/components/common/Text'
+import { useSettingValue } from '@/store/setting/hook'
+import { useDesignTokens } from '@/theme/v2'
+import { Typography } from '@/components/v2/atoms'
 
 
 export interface InputItemProps extends InputProps {
@@ -19,6 +22,8 @@ export default memo(({ value, label, onChanged, ...props }: InputItemProps) => {
   const isMountRef = useRef(false)
   const inputRef = useRef<InputType>(null)
   const theme = useTheme()
+  const useModernUI = useSettingValue('theme.useModernUI')
+  const { tokens } = useDesignTokens()
   const saveValue = () => {
     onChanged?.(text, (value: string) => {
       if (!isMountRef.current) return
@@ -61,6 +66,23 @@ export default memo(({ value, label, onChanged, ...props }: InputItemProps) => {
     setText(text)
     textRef.current = text
   }
+  if (useModernUI) {
+    // 与 SettingRow 对齐;背景和圆角由 Input 的现代样式提供,这里只让输入框占满整行
+    return (
+      <View style={{ paddingHorizontal: tokens.spacing.md, paddingVertical: tokens.spacing.sm }}>
+        <Typography variant="body" weight="500" style={{ marginBottom: tokens.spacing.xs }}>{label}</Typography>
+        <Input
+          value={text}
+          ref={inputRef}
+          onChangeText={handleSetSelectMode}
+          style={styles.inputModern}
+          {...props}
+          onBlur={saveValue}
+        />
+      </View>
+    )
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.label} size={14}>{label}</Text>
@@ -92,5 +114,9 @@ const styles = StyleSheet.create({
     // paddingTop: 3,
     // paddingBottom: 3,
     maxWidth: 300,
+  },
+  inputModern: {
+    flexGrow: 1,
+    flexShrink: 1,
   },
 })
