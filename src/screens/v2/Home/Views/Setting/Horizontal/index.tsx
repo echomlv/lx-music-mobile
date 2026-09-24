@@ -65,7 +65,7 @@ const Horizontal = () => {
   const mainRef = useRef<MainType>(null)
 
   return (
-    <View style={{ flex: 1, flexDirection: 'row', backgroundColor: colors['c-primary-light-300-alpha-200'] }}>
+    <View style={{ flex: 1, flexDirection: 'row', backgroundColor: colors['c-content-background'] }}>
       <Surface
         variant="solid"
         radius="none"
@@ -75,10 +75,20 @@ const Horizontal = () => {
       >
         <NavList onChangeId={id => { mainRef.current?.setActiveId(id) }} />
       </Surface>
-      {/* 各分组(Section)自带卡片,这里不再额外包一层卡片,与竖屏保持一致 */}
-      <ScrollView keyboardShouldPersistTaps="always" style={{ flex: 1 }} contentContainerStyle={{ padding: tokens.spacing.lg }}>
-        <Main ref={mainRef} />
-      </ScrollView>
+      {/* 右侧内容区:圆角浅色底,各分组(Section)自带卡片 */}
+      <View
+        style={{
+          flex: 1,
+          margin: tokens.spacing.sm,
+          borderRadius: tokens.radius.lg,
+          overflow: 'hidden',
+          backgroundColor: colors['c-primary-light-300-alpha-200'],
+        }}
+      >
+        <ScrollView keyboardShouldPersistTaps="always" style={{ flex: 1 }} contentContainerStyle={{ padding: tokens.spacing.sm }}>
+          <Main ref={mainRef} />
+        </ScrollView>
+      </View>
     </View>
   )
 }
