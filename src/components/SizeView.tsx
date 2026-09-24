@@ -1,5 +1,5 @@
 import { memo, useCallback, useRef, useEffect } from 'react'
-import { type LayoutChangeEvent, StyleSheet, View, StatusBar, Dimensions } from 'react-native'
+import { type LayoutChangeEvent, StyleSheet, View, StatusBar, Dimensions, Platform } from 'react-native'
 import commonState from '@/store/common/state'
 import settingState from '@/store/setting/state'
 import { setStatusbarHeight } from '@/core/common'
@@ -20,7 +20,10 @@ export default memo(() => {
   const dimensionsChangedRef = useRef(true)
   const handleLayout = useCallback(({ nativeEvent: { layout } }: LayoutChangeEvent | { nativeEvent: { layout: { width: number, height: number } } }) => {
     // console.log('handleLayout')
-    if (!dimensionsChangedRef.current) return
+    // Android 键盘弹出会压缩页面高度,只接受 Dimensions 变化后的那次布局,避免把键盘造成的尺寸变化当成窗口变化。
+    // iOS 键盘不改变页面根视图尺寸,且一次旋转可能先后产生多次布局(或布局先于 Dimensions 事件到达),
+    // 若只接受第一次会丢掉最终那次正确的布局,导致横竖屏布局停留在旧状态,所以每次布局都更新
+    if (!dimensionsChangedRef.current && Platform.OS != 'ios') return
     void getWindowSize().then(size => {
       dimensionsChangedRef.current = false
       // console.log(layout, size)
