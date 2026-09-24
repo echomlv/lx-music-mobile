@@ -1,20 +1,46 @@
-import { memo } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { View } from 'react-native'
 import Button from '@/components/common/Button'
 
-import { createStyle } from '@/utils/tools'
+import { createStyle, toast } from '@/utils/tools'
 import { pop } from '@/navigation'
 import { useTheme } from '@/store/theme/hook'
 import { useSettingValue } from '@/store/setting/hook'
 import { useDesignTokens } from '@/theme/v2'
 import commonState from '@/store/common/state'
 import Text from '@/components/common/Text'
-import { handleCollect, handlePlay } from './listAction'
+import { findCollectedList, handleCollect, handlePlay } from './listAction'
 import songlistState from '@/store/songlist/state'
 import { useI18n } from '@/lang'
 import { useListInfo } from './state'
 import { PillButton } from '@/components/v2/atoms'
 import { Icon } from '@/components/common/Icon'
+import { useMyList } from '@/store/list/hook'
+
+const useCollect = () => {
+  const info = useListInfo()
+  const lists = useMyList()
+  const [collecting, setCollecting] = useState(false)
+  const collected = useMemo(() => !!findCollectedList(lists, info.id, info.source), [lists, info.id, info.source])
+
+  const collect = useCallback(() => {
+    if (collecting || !songlistState.listDetailInfo.info.name) return
+    // 已收藏时 handleCollect 只弹确认框并在后台同步,不进入「收藏中」状态
+    if (!collected) setCollecting(true)
+    handleCollect(info.id, info.source, songlistState.listDetailInfo.info.name || info.name).catch((err) => {
+      console.log(err)
+      toast(global.i18n.t('collect_failed'))
+    }).finally(() => {
+      setCollecting(false)
+    })
+  }, [collecting, collected, info.id, info.source, info.name])
+
+  const labelKey = collecting
+    ? 'collect_songlist_collecting'
+    : collected ? 'collect_songlist_collected' : 'collect_songlist'
+
+  return { collected, collecting, collect, labelKey } as const
+}
 
 const ActionBarV1 = () => {
   const theme = useTheme()
@@ -30,15 +56,16 @@ const ActionBarV1 = () => {
     void handlePlay(info.id, info.source, songlistState.listDetailInfo.list)
   }
 
-  const handleCollection = () => {
-    if (!songlistState.listDetailInfo.info.name) return
-    void handleCollect(info.id, info.source, songlistState.listDetailInfo.info.name || info.name)
-  }
+  const { collected, collecting, collect, labelKey } = useCollect()
 
   return (
     <View style={styles.container}>
-      <Button onPress={handleCollection} style={styles.controlBtn}>
-        <Text style={{ ...styles.controlBtnText, color: theme['c-button-font'] }}>{t('collect_songlist')}</Text>
+      <Button onPress={collect} disabled={collecting} style={styles.controlBtn}>
+        <Text style={{ ...styles.controlBtnText, color: theme['c-button-font'] }}>
+          {collected && !collecting ? <Icon name="love-fill" size={12} color={theme['c-button-font']} /> : null}
+          {collected && !collecting ? ' ' : null}
+          {t(labelKey)}
+        </Text>
       </Button>
       <Button onPress={handlePlayAll} style={styles.controlBtn}>
         <Text style={{ ...styles.controlBtnText, color: theme['c-button-font'] }}>{t('play_all')}</Text>
@@ -62,10 +89,7 @@ const ActionBarV2 = () => {
     if (!songlistState.listDetailInfo.info.name) return
     void handlePlay(info.id, info.source, songlistState.listDetailInfo.list)
   }
-  const handleCollection = () => {
-    if (!songlistState.listDetailInfo.info.name) return
-    void handleCollect(info.id, info.source, songlistState.listDetailInfo.info.name || info.name)
-  }
+  const { collected, collecting, collect, labelKey } = useCollect()
 
   return (
     <View style={{
@@ -86,9 +110,10 @@ const ActionBarV2 = () => {
         fullWidth
         variant="secondary"
         size="sm"
-        label={t('collect_songlist')}
-        leading={<Icon name="love" size={12} color={colors['c-primary']} />}
-        onPress={handleCollection}
+        label={t(labelKey)}
+        leading={<Icon name={collected && !collecting ? 'love-fill' : 'love'} size={12} color={colors['c-primary']} />}
+        onPress={collect}
+        disabled={collecting}
         style={{ flex: 1 }}
       />
       <PillButton
