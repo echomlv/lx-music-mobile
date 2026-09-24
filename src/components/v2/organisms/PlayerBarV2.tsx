@@ -176,17 +176,22 @@ Actions.displayName = 'v2.PlayerBar.Actions'
 const PROGRESS_STRIP_HEIGHT = 28
 const PROGRESS_PADDING_TOP = 24
 const PROGRESS_STRIP_BOTTOM_OFFSET = 16
+// 横屏时 home indicator 已在安全区之外,且列表区域很矮:收窄命中区域、去掉底部偏移,避免播放条下方出现空白
+const PROGRESS_STRIP_HEIGHT_HORIZONTAL = 10
+const PROGRESS_PADDING_TOP_HORIZONTAL = 6
 
 const ProgressStrip = memo(({ autoUpdate }: { autoUpdate: boolean }) => {
   const { progress, maxPlayTime } = useProgress(autoUpdate)
   const buffered = useBufferProgress()
   const allowProgressBarSeek = useSettingValue('common.allowProgressBarSeek')
+  const isHorizontal = useHorizontalMode()
+  const paddingTop = isHorizontal ? PROGRESS_PADDING_TOP_HORIZONTAL : PROGRESS_PADDING_TOP
 
   return (
-    <View style={styles.progressWrap}>
+    <View style={isHorizontal ? styles.progressWrapHorizontal : styles.progressWrap}>
       {allowProgressBarSeek
-        ? <Progress progress={progress} duration={maxPlayTime} buffered={buffered} paddingTop={PROGRESS_PADDING_TOP} />
-        : <ProgressPlain progress={progress} duration={maxPlayTime} buffered={buffered} paddingTop={PROGRESS_PADDING_TOP} />}
+        ? <Progress progress={progress} duration={maxPlayTime} buffered={buffered} paddingTop={paddingTop} />
+        : <ProgressPlain progress={progress} duration={maxPlayTime} buffered={buffered} paddingTop={paddingTop} />}
     </View>
   )
 })
@@ -248,5 +253,9 @@ const styles = StyleSheet.create({
     height: PROGRESS_STRIP_HEIGHT,
     width: '100%',
     marginBottom: PROGRESS_STRIP_BOTTOM_OFFSET,
+  },
+  progressWrapHorizontal: {
+    height: PROGRESS_STRIP_HEIGHT_HORIZONTAL,
+    width: '100%',
   },
 })
