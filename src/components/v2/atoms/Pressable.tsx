@@ -1,6 +1,39 @@
 import { memo, useRef, type ReactNode } from 'react'
-import { Animated, Pressable as RNPressable, type PressableProps, type StyleProp, type ViewStyle } from 'react-native'
+import { Animated, Pressable as RNPressable, StyleSheet, type PressableProps, type StyleProp, type ViewStyle } from 'react-native'
 import { useDesignTokens } from '@/theme/v2'
+
+// 这些属性决定 children 的排列方式,必须作用在直接包裹 children 的 RNPressable 上;
+// 若留在外层 Animated.View,它只会排列唯一的子节点 RNPressable,children 会退回默认的纵向布局
+const CONTENT_LAYOUT_KEYS = [
+  'flexDirection',
+  'flexWrap',
+  'alignItems',
+  'alignContent',
+  'justifyContent',
+  'gap',
+  'rowGap',
+  'columnGap',
+  'padding',
+  'paddingHorizontal',
+  'paddingVertical',
+  'paddingTop',
+  'paddingBottom',
+  'paddingLeft',
+  'paddingRight',
+  'paddingStart',
+  'paddingEnd',
+] as const
+
+const splitStyle = (style: StyleProp<ViewStyle>) => {
+  const outer: Record<string, unknown> = { ...StyleSheet.flatten(style) }
+  const content: Record<string, unknown> = {}
+  for (const key of CONTENT_LAYOUT_KEYS) {
+    if (outer[key] === undefined) continue
+    content[key] = outer[key]
+    delete outer[key]
+  }
+  return { outer: outer as ViewStyle, content: content as ViewStyle }
+}
 
 export interface V2PressableProps extends Omit<PressableProps, 'style' | 'children'> {
   style?: StyleProp<ViewStyle>
@@ -31,6 +64,7 @@ export const V2Pressable = memo(({
   const { tokens, isDark } = useDesignTokens()
   const scale = useRef(new Animated.Value(1)).current
   const overlay = useRef(new Animated.Value(0)).current
+  const { outer, content } = splitStyle(style)
 
   const animateTo = (toScale: number, toOverlay: number) => {
     Animated.parallel([
@@ -48,9 +82,9 @@ export const V2Pressable = memo(({
   }
 
   return (
-    <Animated.View style={[{ transform: [{ scale }] }, style]}>
+    <Animated.View style={[{ transform: [{ scale }] }, outer]}>
       <RNPressable
-        style={pressableStyle}
+        style={[{ flexGrow: 1 }, content, pressableStyle]}
         onPressIn={(e) => {
           animateTo(pressScale, pressOverlay)
           onPressIn?.(e)
