@@ -80,6 +80,9 @@ export interface DetailInfo {
 
 const COVER_V2 = scaleSizeW(110)
 const COVER_SIDE = 88
+// 侧栏内容宽度达到这个值(iPad)时,改为大封面在上、信息在下的布局
+const SIDE_LARGE_MIN_WIDTH = 280
+const COVER_SIDE_LARGE_MAX = 320
 
 const HeaderV1 = forwardRef<HeaderType, HeaderProps>(({ componentId, initInfo }, ref) => {
   const statusBarHeight = useStatusbarHeight()
@@ -146,6 +149,7 @@ const HeaderV2 = forwardRef<HeaderType, HeaderProps>(({ componentId, side = fals
   const { colors, tokens } = useDesignTokens()
   const info = useListInfo()
   const [detailInfo, setDetailInfo] = useState<DetailInfo>(initInfo ?? { name: '', desc: '', playCount: '', imgUrl: info.img })
+  const [sideContentWidth, setSideContentWidth] = useState(0)
 
   useImperativeHandle(ref, () => ({
     setInfo(info) {
@@ -154,6 +158,21 @@ const HeaderV2 = forwardRef<HeaderType, HeaderProps>(({ componentId, side = fals
   }), [])
 
   if (side) {
+    const isLarge = sideContentWidth >= SIDE_LARGE_MIN_WIDTH
+    const titleInfo = (
+      <View style={isLarge ? null : { flex: 1 }} nativeID={NAV_SHEAR_NATIVE_IDS.songlistDetail_title}>
+        <Typography variant="subtitle" weight="700" numberOfLines={3}>
+          {detailInfo.name}
+        </Typography>
+        {detailInfo.playCount
+          ? (
+              <Typography variant="caption" color={colors['c-font-label']} numberOfLines={1} style={{ marginTop: tokens.spacing.xs }}>
+                {detailInfo.playCount}
+              </Typography>
+            )
+          : null}
+      </View>
+    )
     return (
       <View style={{
         paddingTop: statusBarHeight + tokens.spacing.lg,
@@ -161,20 +180,18 @@ const HeaderV2 = forwardRef<HeaderType, HeaderProps>(({ componentId, side = fals
         paddingBottom: tokens.spacing.lg,
         gap: tokens.spacing.md,
       }}>
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: tokens.spacing.md }}>
-          <PicV2 componentId={componentId} imgUrl={detailInfo.imgUrl} size={COVER_SIDE} />
-          <View style={{ flex: 1 }} nativeID={NAV_SHEAR_NATIVE_IDS.songlistDetail_title}>
-            <Typography variant="subtitle" weight="700" numberOfLines={3}>
-              {detailInfo.name}
-            </Typography>
-            {detailInfo.playCount
-              ? (
-                  <Typography variant="caption" color={colors['c-font-label']} numberOfLines={1} style={{ marginTop: tokens.spacing.xs }}>
-                    {detailInfo.playCount}
-                  </Typography>
-                )
-              : null}
-          </View>
+        <View
+          onLayout={e => { setSideContentWidth(e.nativeEvent.layout.width) }}
+          style={isLarge
+            ? { gap: tokens.spacing.md }
+            : { flexDirection: 'row', alignItems: 'flex-start', gap: tokens.spacing.md }}
+        >
+          <PicV2
+            componentId={componentId}
+            imgUrl={detailInfo.imgUrl}
+            size={isLarge ? Math.min(sideContentWidth, COVER_SIDE_LARGE_MAX) : COVER_SIDE}
+          />
+          {titleInfo}
         </View>
         {detailInfo.desc
           ? (
