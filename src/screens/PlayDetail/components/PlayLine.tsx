@@ -7,6 +7,7 @@ import { useTheme } from '@/store/theme/hook'
 import { BorderWidths } from '@/theme'
 import { formatPlayTime2 } from '@/utils'
 import { Icon } from '@/components/common/Icon'
+import DashedLine from '@/components/common/DashedLine'
 
 
 export interface PlayLineType {
@@ -84,7 +85,7 @@ export default forwardRef<PlayLineType, PlayLineProps>(({ onPlayLine }, ref) => 
     <Animated.View style={{ ...styles.playLine, opacity: opsAnim }}>
       <Text style={styles.label} color={theme['c-primary-font']} size={13}>{timeLabel}</Text>
       <View style={styles.lineContent}>
-        <View style={{ ...styles.line, borderBottomColor: theme['c-primary-alpha-700'] }} />
+        <DashedLine color={theme['c-primary-alpha-700']} thickness={BorderWidths.normal2} style={styles.line} />
         <TouchableOpacity style={styles.button} onPress={handlePlayLine}>
           <Icon name="play" color={theme['c-button-font']} size={18} />
         </TouchableOpacity>
@@ -124,8 +125,6 @@ const styles = createStyle({
   },
   line: {
     marginLeft: 30,
-    borderBottomWidth: BorderWidths.normal2,
-    borderStyle: 'dashed',
     flex: 1,
   },
   button: {

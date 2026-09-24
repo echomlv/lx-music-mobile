@@ -4,6 +4,7 @@ import { TouchableOpacity, View } from 'react-native'
 import { Icon } from '@/components/common/Icon'
 import Text from '@/components/common/Text'
 import Slider from '@/components/common/Slider'
+import DashedLine from '@/components/common/DashedLine'
 import { updateSetting } from '@/core/common'
 import { useI18n } from '@/lang'
 import SoundEffectPresetSaveModal, { type SoundEffectPresetSaveModalType } from './SoundEffectPresetSaveModal'
@@ -718,7 +719,8 @@ export default memo(({ showTip = true, layoutMode = 'split' }: {
             onUserPresetLongPress={preset => { void handleRemoveConvolutionPreset(preset) }}
           />
         </View>
-        <View style={{ ...styles.sectionBlock, ...styles.sectionBlockWithDivider, borderTopColor: dividerColor }}>
+        <View style={{ ...styles.sectionBlock, ...styles.sectionBlockWithDivider }}>
+          <DashedLine color={dividerColor} style={styles.sectionDivider} />
           <EqualizerSection
             presetId={presetId}
             previewGains={previewGains}
@@ -735,7 +737,8 @@ export default memo(({ showTip = true, layoutMode = 'split' }: {
             layoutMode={layoutMode}
           />
         </View>
-        <View style={{ ...styles.sectionBlock, ...styles.sectionBlockWithDivider, borderTopColor: dividerColor }}>
+        <View style={{ ...styles.sectionBlock, ...styles.sectionBlockWithDivider }}>
+          <DashedLine color={dividerColor} style={styles.sectionDivider} />
           <PitchSection
             playbackRate={pitchPlaybackRate}
             onReset={handleResetPitch}
@@ -743,7 +746,8 @@ export default memo(({ showTip = true, layoutMode = 'split' }: {
             onShowTip={handleShowPitchTip}
           />
         </View>
-        <View style={{ ...styles.sectionBlock, ...styles.sectionBlockWithDivider, borderTopColor: dividerColor }}>
+        <View style={{ ...styles.sectionBlock, ...styles.sectionBlockWithDivider }}>
+          <DashedLine color={dividerColor} style={styles.sectionDivider} />
           <SurroundSection
             enabled={surroundEnabled}
             speed={surroundSpeed}
@@ -783,7 +787,8 @@ export default memo(({ showTip = true, layoutMode = 'split' }: {
               onUserPresetLongPress={preset => { void handleRemoveConvolutionPreset(preset) }}
             />
           </View>
-          <View style={{ ...styles.sectionBlock, ...styles.sectionBlockWithDivider, borderTopColor: dividerColor }}>
+          <View style={{ ...styles.sectionBlock, ...styles.sectionBlockWithDivider }}>
+            <DashedLine color={dividerColor} style={styles.sectionDivider} />
             <PitchSection
               playbackRate={pitchPlaybackRate}
               onReset={handleResetPitch}
@@ -791,7 +796,8 @@ export default memo(({ showTip = true, layoutMode = 'split' }: {
               onShowTip={handleShowPitchTip}
             />
           </View>
-          <View style={{ ...styles.sectionBlock, ...styles.sectionBlockWithDivider, borderTopColor: dividerColor }}>
+          <View style={{ ...styles.sectionBlock, ...styles.sectionBlockWithDivider }}>
+            <DashedLine color={dividerColor} style={styles.sectionDivider} />
             <SurroundSection
               enabled={surroundEnabled}
               speed={surroundSpeed}
@@ -808,7 +814,7 @@ export default memo(({ showTip = true, layoutMode = 'split' }: {
           ) : null}
         </View>
 
-        <View style={{ ...styles.columnDivider, borderRightColor: dividerColor }} />
+        <DashedLine vertical color={dividerColor} style={styles.columnDivider} />
 
         <View style={styles.rightColumn}>
           <View style={styles.sectionBlock}>
@@ -856,20 +862,20 @@ const styles = createStyle({
     minWidth: 0,
   },
   columnDivider: {
-    width: 1,
-    borderRightWidth: 1,
-    borderStyle: 'dashed',
-    borderRightColor: 'rgba(120, 180, 160, 0.5)',
     marginVertical: 2,
   },
   sectionBlock: {
     minWidth: 0,
   },
   sectionBlockWithDivider: {
-    borderTopWidth: 1,
-    borderStyle: 'dashed',
     paddingTop: 14,
     marginTop: 12,
+  },
+  sectionDivider: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
   },
   section: {
     paddingBottom: 2,

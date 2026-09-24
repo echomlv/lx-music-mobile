@@ -11,6 +11,7 @@ import { scaleSizeW } from '@/utils/pixelRatio'
 import { useLayout } from '@/utils/hooks'
 import { useI18n } from '@/lang'
 import Image from '@/components/common/Image'
+import DashedLine from '@/components/common/DashedLine'
 import CommentImage from './CommentImage'
 import CommentText from './CommentText'
 import { useDesignTokens } from '@/theme/v2'
@@ -41,11 +42,11 @@ const CommentFloor = memo(({ comment, isLast }: {
     return (
       <View style={{
         ...styles.replyFloor,
-        borderTopColor: useModernUI ? semanticColors.border : theme['c-list-header-border-bottom'],
         ...(useModernUI
-          ? { marginTop: tokens.spacing.md, marginLeft: 0, paddingTop: tokens.spacing.sm, borderStyle: 'solid' as const }
+          ? { marginTop: tokens.spacing.md, marginLeft: 0, paddingTop: tokens.spacing.sm, borderTopWidth: BorderWidths.normal, borderTopColor: semanticColors.border }
           : {}),
       }}>
+        {useModernUI ? null : <DashedLine color={theme['c-list-header-border-bottom']} thickness={BorderWidths.normal} />}
         {
           comment.reply.map((c, index) => (
             <CommentFloor comment={c} isLast={index === endIndex} key={`${comment.id}_${c.id}`} />
@@ -79,8 +80,6 @@ const CommentFloor = memo(({ comment, isLast }: {
             ...tokens.elevation.sm,
           }
         : {
-            borderBottomColor: theme['c-list-header-border-bottom'],
-            borderBottomWidth: isLast ? 0 : BorderWidths.normal,
             paddingBottom: isLast ? 0 : GAP,
           }),
     }}>
@@ -119,6 +118,9 @@ const CommentFloor = memo(({ comment, isLast }: {
         </View>
       </View>
       {replyComments}
+      {useModernUI || isLast
+        ? null
+        : <DashedLine color={theme['c-list-header-border-bottom']} thickness={BorderWidths.normal} style={styles.bottomLine} />}
     </View>
   )
 })
@@ -129,8 +131,12 @@ const styles = createStyle({
     // backgroundColor: 'rgba(0,0,0,0.1)',
     marginTop: GAP,
     paddingBottom: GAP,
-    borderBottomWidth: BorderWidths.normal,
-    borderStyle: 'dashed',
+  },
+  bottomLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   comment: {
     flex: 1,
@@ -170,9 +176,7 @@ const styles = createStyle({
   replyFloor: {
     marginTop: GAP,
     marginLeft: 20,
-    borderTopWidth: BorderWidths.normal,
     // backgroundColor: 'rgba(0,0,0,0.1)',
-    borderStyle: 'dashed',
   },
 })
 
