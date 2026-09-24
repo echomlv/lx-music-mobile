@@ -9,6 +9,14 @@ import { updateSetting } from '@/core/common'
 import { useI18n } from '@/lang'
 import { TRY_QUALITYS_LIST } from '@/core/music/utils'
 
+// 仅用于显示,保存的设置值仍是原始 quality id
+const QUALITY_LABELS: Partial<Record<LX.Quality, string>> = {
+  '128k': '128K',
+  '320k': '320K',
+  flac: 'FLAC',
+  flac24bit: 'FLAC24',
+}
+
 const useActive = (id: LX.Quality) => {
   const q = useSettingValue('player.playQuality')
   const isActive = useMemo(() => q == id, [q, id])
@@ -26,6 +34,7 @@ const Item = ({ id, name }: {
 
 export default memo(() => {
   const t = useI18n()
+  const useModernUI = useSettingValue('theme.useModernUI')
   const playQualityList = useMemo(() => {
     return [...TRY_QUALITYS_LIST, '128k'].reverse() as LX.Quality[]
   }, [])
@@ -34,7 +43,11 @@ export default memo(() => {
     <SubTitle title={t('setting_play_play_quality')}>
       <View style={styles.list}>
         {
-          playQualityList.map((q) => <Item name={q} id={q} key={q} />)
+          playQualityList.map((q) => {
+            const item = <Item name={QUALITY_LABELS[q] ?? q} id={q} key={q} />
+            // 现代 UI 下每项占半行,四个音质整齐排成两行两列
+            return useModernUI ? <View style={styles.itemModern} key={q}>{item}</View> : item
+          })
         }
       </View>
     </SubTitle>
@@ -45,6 +58,10 @@ const styles = StyleSheet.create({
   list: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+  },
+  itemModern: {
+    width: '50%',
+    marginBottom: 8,
   },
 })
 
