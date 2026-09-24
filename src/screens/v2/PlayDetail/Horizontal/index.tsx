@@ -13,7 +13,6 @@ import commonState, { type InitState as CommonState } from '@/store/common/state
 import { useStatusbarHeight } from '@/store/common/hook'
 import { createStyle } from '@/utils/tools'
 
-import Background from '../Background'
 
 /**
  * v2 PlayDetail 横屏:沉浸背景 + 复用 v1 横屏内部组件树。
@@ -50,7 +49,6 @@ export default memo(({ componentId }: { componentId: string }) => {
 
   return (
     <>
-      <Background />
       <View style={[StyleSheet.absoluteFillObject, styles.container, { paddingTop: statusBarHeight }]}>
         <View style={styles.left}>
           <Header />

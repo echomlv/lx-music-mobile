@@ -6,6 +6,7 @@ import Vertical from './Vertical'
 import Horizontal from './Horizontal'
 import VerticalV2 from '@/screens/v2/PlayDetail/Vertical'
 import HorizontalV2 from '@/screens/v2/PlayDetail/Horizontal'
+import BackgroundV2 from '@/screens/v2/PlayDetail/Background'
 import PageContent from '@/components/PageContent'
 import StatusBar from '@/components/common/StatusBar'
 import { setComponentId } from '@/core/common'
@@ -25,7 +26,8 @@ export default ({ componentId }: { componentId: string }) => {
     : (isHorizontalMode ? Horizontal : Vertical)
 
   return (
-    <PageContent>
+    // 沉浸背景放在 PageContent 的背景层,铺满安全区,避免屏幕边缘露出白边
+    <PageContent background={useModernUI ? <BackgroundV2 /> : undefined}>
       <StatusBar />
       <Body componentId={componentId} />
     </PageContent>

@@ -11,6 +11,8 @@ import { useBgPic } from '@/store/common/hook'
 
 interface Props {
   children: React.ReactNode
+  /** 铺满整个屏幕(含安全区)的背景层,渲染在 SafeAreaView 之外 */
+  background?: React.ReactNode
 }
 
 const BLUR_RADIUS = Math.max(scaleSizeAbsHR(18), 10)
@@ -20,7 +22,7 @@ const ContentContainer = ({ children }: Props) => {
   return <>{children}</>
 }
 
-export default ({ children }: Props) => {
+export default ({ children, background }: Props) => {
   const theme = useTheme()
   const windowSize = useWindowSize()
   const pic = useBgPic()
@@ -60,13 +62,14 @@ export default ({ children }: Props) => {
           },
         ]}
       />
+      {background}
       <ContentContainer>
         <View style={{ flex: 1, flexDirection: 'column' }}>
           {children}
         </View>
       </ContentContainer>
     </View>
-  ), [children, theme, windowSize.height, windowSize.width])
+  ), [children, background, theme, windowSize.height, windowSize.width])
   const picComponent = useMemo(() => {
     return (
       <View style={{ flex: 1, overflow: 'hidden' }}>
@@ -86,6 +89,7 @@ export default ({ children }: Props) => {
             },
           ]}
         />
+        {background}
         <ContentContainer>
           <View style={{ flex: 1, flexDirection: 'column' }}>
             {children}
@@ -93,7 +97,7 @@ export default ({ children }: Props) => {
         </ContentContainer>
       </View>
     )
-  }, [children, pic, theme, windowSize.height, windowSize.width])
+  }, [children, background, pic, theme, windowSize.height, windowSize.width])
 
   return (
     <>

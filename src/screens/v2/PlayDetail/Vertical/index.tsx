@@ -9,7 +9,6 @@ import Lyric from '@/screens/PlayDetail/Vertical/Lyric'
 import { screenkeepAwake, screenUnkeepAwake } from '@/utils/nativeModules/utils'
 import commonState, { type InitState as CommonState } from '@/store/common/state'
 
-import Background from '../Background'
 
 /**
  * v2 PlayDetail 竖屏:沉浸背景层 + 复用 v1 内部组件树(透明 bg 自然透出)。
@@ -66,7 +65,6 @@ export default memo(({ componentId }: { componentId: string }) => {
 
   return (
     <>
-      <Background />
       <View style={StyleSheet.absoluteFillObject}>
         <Header />
         <View style={{ flex: 1, flexDirection: 'column' }}>
