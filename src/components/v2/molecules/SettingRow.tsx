@@ -54,7 +54,7 @@ export const SettingRow = memo(({
     >
       <View style={{ flex: 1, minWidth: 0, paddingRight: tokens.spacing.md }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Typography variant="body" numberOfLines={1} style={{ flexShrink: 1 }}>{label}</Typography>
+          <Typography variant="body" numberOfLines={2} style={{ flexShrink: 1 }}>{label}</Typography>
           {onHelp
             ? (
                 <TouchableOpacity

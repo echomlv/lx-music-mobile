@@ -12,7 +12,7 @@ export default memo((props: CheckBoxProps) => {
   const useModernUI = useSettingValue('theme.useModernUI')
 
   if (useModernUI) {
-    // 帮助说明由 SettingRow 显示在标题旁,不传给 CheckBox,避免它在复选框右侧再渲染帮助按钮导致列不对齐
+    // 帮助说明只通过标题旁的问号弹窗查看,不在行内重复显示;也不传给 CheckBox,避免它在复选框右侧再渲染帮助按钮导致列不对齐
     const { helpTitle, helpDesc, label, ...checkBoxProps } = props
     const canToggle = !props.disabled && !(props.need && props.check)
     const handleShowHelp = helpDesc
@@ -27,7 +27,6 @@ export default memo((props: CheckBoxProps) => {
     return (
       <SettingRow
         label={label ?? ''}
-        description={helpDesc}
         onPress={canToggle ? () => { props.onChange(!props.check) } : undefined}
         onHelp={handleShowHelp}
         disabled={props.disabled}
