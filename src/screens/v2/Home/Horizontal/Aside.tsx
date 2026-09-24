@@ -104,7 +104,8 @@ const Aside = memo(() => {
       <LogoHeader />
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ alignItems: 'center', paddingVertical: tokens.spacing.xs }}
+        // 空间足够(iPad 横屏)时导航按钮在 Logo 与底部按钮之间垂直居中;不够时从上往下排并可滚动
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: tokens.spacing.xs }}
         showsVerticalScrollIndicator={false}
       >
         {NAV_MENUS.map(menu => (

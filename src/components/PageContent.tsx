@@ -3,6 +3,7 @@ import { Platform, SafeAreaView, StyleSheet, View } from 'react-native'
 import { useTheme } from '@/store/theme/hook'
 import ImageBackground from '@/components/common/ImageBackground'
 import { useWindowSize } from '@/utils/hooks'
+import { isHorizontalMode } from '@/utils/tools'
 import { useMemo } from 'react'
 import { scaleSizeAbsHR } from '@/utils/pixelRatio'
 import { defaultHeaders } from './common/Image'
@@ -17,8 +18,22 @@ interface Props {
 
 const BLUR_RADIUS = Math.max(scaleSizeAbsHR(18), 10)
 
+// iPhone 横屏时系统隐藏状态栏,SafeAreaView 顶部内边距为 0,内容会顶到屏幕上沿,补一点留白;
+// iPad 横屏保留状态栏,不需要
+const IPHONE_LANDSCAPE_TOP_GAP = 12
+
 const ContentContainer = ({ children }: Props) => {
-  if (Platform.OS == 'ios') return <SafeAreaView style={{ flex: 1 }}>{children}</SafeAreaView>
+  const windowSize = useWindowSize()
+  if (Platform.OS == 'ios') {
+    const isIPhoneLandscape = !Platform.isPad && isHorizontalMode(windowSize.width, windowSize.height)
+    return (
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={{ flex: 1, paddingTop: isIPhoneLandscape ? IPHONE_LANDSCAPE_TOP_GAP : 0 }}>
+          {children}
+        </View>
+      </SafeAreaView>
+    )
+  }
   return <>{children}</>
 }
 

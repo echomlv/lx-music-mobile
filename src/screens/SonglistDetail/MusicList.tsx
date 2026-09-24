@@ -149,7 +149,8 @@ export default forwardRef<MusicListType, MusicListProps>(({ componentId }, ref) 
       {isSideLayout
         ? (
             <View style={{ width: '30%', minWidth: 220, maxWidth: 360, borderRightWidth: 1, borderRightColor: colors['c-border-background'] }}>
-              <ScrollView>{header}</ScrollView>
+              {/* 内容比左栏短时整块垂直居中,超出时从顶部开始滚动 */}
+              <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>{header}</ScrollView>
             </View>
           )
         : null}
