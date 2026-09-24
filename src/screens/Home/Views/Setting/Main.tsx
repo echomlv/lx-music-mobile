@@ -10,8 +10,9 @@ import Backup from './settings/Backup'
 import Other from './settings/Other'
 import Version from './settings/Version'
 import About from './settings/About'
+import { isDesktopLyricSupported } from '@/utils/nativeModules/lyricDesktop'
 
-export const SETTING_SCREENS = [
+const ALL_SETTING_SCREENS = [
   'basic',
   'player',
   'lyric_desktop',
@@ -24,7 +25,12 @@ export const SETTING_SCREENS = [
   'about',
 ] as const
 
-export type SettingScreenIds = typeof SETTING_SCREENS[number]
+export type SettingScreenIds = typeof ALL_SETTING_SCREENS[number]
+
+// 不支持桌面歌词的平台(如 iOS)该分类没有任何设置项,不在导航中显示,否则选中后右侧是空白
+export const SETTING_SCREENS: readonly SettingScreenIds[] = isDesktopLyricSupported
+  ? ALL_SETTING_SCREENS
+  : ALL_SETTING_SCREENS.filter(id => id != 'lyric_desktop')
 
 // interface MainProps {
 //   onUpdateActiveId: (id: string) => void
