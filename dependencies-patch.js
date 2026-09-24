@@ -1157,6 +1157,47 @@ const patchTrackPlayerLifecycleSync = async() => {
   })
 }
 
+// autoUpdateMetadata 为 false 时锁屏信息完全由 AppDelegate 的 NowPlayingModule 管理,
+// 这里拦住 RNTrackPlayer 绕过该开关直接写 MPNowPlayingInfoCenter 的几处调用,避免两边互相覆盖
+const patchTrackPlayerNowPlayingOwnership = async() => {
+  const filePath = 'node_modules/react-native-track-player/ios/RNTrackPlayer/RNTrackPlayer.swift'
+
+  await patchFileByRegex({
+    filePath,
+    pattern: /track\.updateMetadata\(dictionary: metadata\)\n\n\s*if \(player\.currentIndex == trackIndex\.intValue\) \{/,
+    replacement: `track.updateMetadata(dictionary: metadata)
+
+        if (player.automaticallyUpdateNowPlayingInfo && player.currentIndex == trackIndex.intValue) {`,
+  })
+
+  await patchFileByRegex({
+    filePath,
+    pattern: /public func updateNowPlayingMetadata\(metadata: \[String: Any\], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock\) \{\n\s*Metadata\.update\(for: player, with: metadata\)/,
+    replacement: `public func updateNowPlayingMetadata(metadata: [String: Any], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        if player.automaticallyUpdateNowPlayingInfo {
+            Metadata.update(for: player, with: metadata)
+        }`,
+  })
+
+  await patchFileByRegex({
+    filePath,
+    pattern: /public func clearNowPlayingMetadata\(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock\) \{\n\s*player\.nowPlayingInfoController\.clear\(\)/,
+    replacement: `public func clearNowPlayingMetadata(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        if player.automaticallyUpdateNowPlayingInfo {
+            player.nowPlayingInfoController.clear()
+        }`,
+  })
+
+  await patchFileByRegex({
+    filePath,
+    pattern: /self\.player\.nowPlayingInfoController\.clear\(\)\n\s*postLifecycleEvent\("destroy"/,
+    replacement: `if self.player.automaticallyUpdateNowPlayingInfo {
+            self.player.nowPlayingInfoController.clear()
+        }
+        postLifecycleEvent("destroy"`,
+  })
+}
+
 ;(async() => {
   for (const target of patchTargets) {
     try {
@@ -1179,6 +1220,11 @@ const patchTrackPlayerLifecycleSync = async() => {
     await patchTrackPlayerLifecycleSync()
   } catch (err) {
     console.error(`Patch TrackPlayer lifecycle sync failed: ${err.message}`)
+  }
+  try {
+    await patchTrackPlayerNowPlayingOwnership()
+  } catch (err) {
+    console.error(`Patch TrackPlayer now playing ownership failed: ${err.message}`)
   }
   try {
     await ensureFileContent({
