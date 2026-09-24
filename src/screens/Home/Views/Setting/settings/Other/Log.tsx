@@ -10,9 +10,13 @@ import ConfirmAlert, { type ConfirmAlertType } from '@/components/common/Confirm
 import CheckBoxItem from '../../components/CheckBoxItem'
 import { useI18n } from '@/lang'
 import Text from '@/components/common/Text'
+import { useSettingValue } from '@/store/setting/hook'
+import { useDesignTokens } from '@/theme/v2'
 
 export default memo(() => {
   const t = useI18n()
+  const useModernUI = useSettingValue('theme.useModernUI')
+  const { tokens } = useDesignTokens()
   const alertRef = useRef<ConfirmAlertType>(null)
   const [logText, setLogText] = useState('')
   const isUnmountedRef = useRef(true)
@@ -62,7 +66,8 @@ export default memo(() => {
   return (
     <>
       <SubTitle title={t('setting_other_log')}>
-        <View style={styles.checkBox}>
+        {/* 现代 UI 下 SettingRow 自带水平内边距,抵消 SubTitle 的内边距使其与标题对齐;经典 UI 抵消 CheckBoxItem 的 paddingLeft */}
+        <View style={useModernUI ? { marginHorizontal: -tokens.spacing.md, paddingBottom: tokens.spacing.sm } : styles.checkBox}>
           <CheckBoxItem check={isEnableSyncErrorLog} label={t('setting_other_log_sync_log')} onChange={handleSetEnableSyncErrorLog} />
           <CheckBoxItem check={isEnableUserApiLog} label={t('setting_other_log_user_api_log')} onChange={handleSetEnableUserApiLog} />
         </View>
