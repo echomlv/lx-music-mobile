@@ -262,7 +262,8 @@ export const loadTrackPlayerResource = async(musicInfo: LX.Player.PlayMusic, url
 
   if (queue.length > tracks.length) {
     const removeCount = queue.length - tracks.length
-    void TrackPlayer.remove(Array(removeCount).fill(null).map((_, i) => i)).then(() => list.splice(0, list.length - removeCount))
+    // list 与播放队列做同样的删除(删掉最前面的 removeCount 条),两次切歌的删除交错完成时也能保持一致
+    void TrackPlayer.remove(Array(removeCount).fill(null).map((_, i) => i)).then(() => list.splice(0, removeCount))
   }
   return track
 }
