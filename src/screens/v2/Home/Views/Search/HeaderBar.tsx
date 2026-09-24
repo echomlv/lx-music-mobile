@@ -128,6 +128,7 @@ export default forwardRef<HeaderBarType, HeaderBarProps>(({
           autoComplete="off"
           returnKeyType="search"
           leading={<Icon name="search-2" color={colors['c-font-label']} size={14} />}
+          containerStyle={{ flex: 1 }}
         />
       </View>
     </Surface>
