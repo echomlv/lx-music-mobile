@@ -87,6 +87,12 @@ export const filterMusicInfoList = (rawList) => {
   return list
 }
 
+// V5 接口返回的封面是 /data/oss/... 形式的相对路径
+const formatImgUrl = (img) => {
+  if (!img) return null
+  return /^https?:/.test(img) ? img : 'https://d.musicapp.migu.cn' + img
+}
+
 export const filterMusicInfoListV5 = (rawList) => {
   // console.log(rawList)
   let ids = new Set()
@@ -139,7 +145,7 @@ export const filterMusicInfoListV5 = (rawList) => {
       copyrightId: item.copyrightId,
       source: 'mg',
       interval: formatPlayTime(item.duration),
-      img: item.img3 || item.img2 || item.img1 || null,
+      img: formatImgUrl(item.img3 || item.img2 || item.img1),
       lrc: null,
       lrcUrl: item.lrcUrl,
       mrcUrl: item.mrcUrl,
