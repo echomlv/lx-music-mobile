@@ -636,6 +636,31 @@ static void LXApplyNowPlayingArtwork(UIImage *image, NSUInteger requestId) {
   });
 }
 
+static const NSUInteger LXNowPlayingArtworkMaxRetries = 2;
+
+static void LXDownloadNowPlayingArtwork(NSURL *url, NSUInteger requestId, NSUInteger attempt) {
+  LXNowPlayingArtworkTask = [[NSURLSession sharedSession] dataTaskWithURL:url completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+    UIImage *image = (error == nil && data.length) ? [UIImage imageWithData:data] : nil;
+    dispatch_async(dispatch_get_main_queue(), ^{
+      if (requestId != LXNowPlayingArtworkRequestId) return;
+      // 任务结束后必须置空,否则 LXSetNowPlayingArtwork 的去重判断会一直拦截同一封面的后续请求
+      LXNowPlayingArtworkTask = nil;
+      if (image != nil) {
+        LXApplyNowPlayingArtwork(image, requestId);
+        return;
+      }
+      if (attempt >= LXNowPlayingArtworkMaxRetries) return;
+      int64_t delay = (int64_t)((attempt + 1) * 2 * NSEC_PER_SEC);
+      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, delay), dispatch_get_main_queue(), ^{
+        if (requestId != LXNowPlayingArtworkRequestId || LXNowPlayingArtworkTask != nil) return;
+        if (LXNowPlayingMutableInfo()[MPMediaItemPropertyArtwork] != nil) return;
+        LXDownloadNowPlayingArtwork(url, requestId, attempt + 1);
+      });
+    });
+  }];
+  [LXNowPlayingArtworkTask resume];
+}
+
 static void LXSetNowPlayingArtwork(NSString *artworkPath) {
   NSMutableDictionary *info = LXNowPlayingMutableInfo();
   BOOL hasArtwork = info[MPMediaItemPropertyArtwork] != nil;
@@ -658,12 +683,7 @@ static void LXSetNowPlayingArtwork(NSString *artworkPath) {
   if ([artworkPath hasPrefix:@"http://"] || [artworkPath hasPrefix:@"https://"]) {
     NSURL *url = [NSURL URLWithString:artworkPath];
     if (url == nil) return;
-    LXNowPlayingArtworkTask = [[NSURLSession sharedSession] dataTaskWithURL:url completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-      if (error != nil || data.length == 0) return;
-      UIImage *image = [UIImage imageWithData:data];
-      setArtwork(image);
-    }];
-    [LXNowPlayingArtworkTask resume];
+    LXDownloadNowPlayingArtwork(url, requestId, 0);
     return;
   }
 
