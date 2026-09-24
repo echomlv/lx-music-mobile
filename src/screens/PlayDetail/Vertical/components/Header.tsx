@@ -18,7 +18,7 @@ import { isSoundEffectActive } from '@/plugins/player/soundEffect'
 import Btn from './Btn'
 import TimeoutExitBtn from './TimeoutExitBtn'
 import { useDesignTokens } from '@/theme/v2'
-import { Surface, Typography } from '@/components/v2/atoms'
+import { Typography } from '@/components/v2/atoms'
 
 export const HEADER_HEIGHT = scaleSizeH(_HEADER_HEIGHT)
 
@@ -55,7 +55,7 @@ export default memo(() => {
   const theme = useTheme()
   const setting = useSetting()
   const useModernUI = useSettingValue('theme.useModernUI')
-  const { tokens, colors } = useDesignTokens()
+  const { tokens } = useDesignTokens()
 
   const back = () => {
     void pop(commonState.componentIds.playDetail!)
@@ -80,17 +80,9 @@ export default memo(() => {
   return (
     <View style={{ height: HEADER_HEIGHT + statusBarHeight, paddingTop: statusBarHeight }} nativeID={NAV_SHEAR_NATIVE_IDS.playDetail_header}>
       <StatusBar />
+      {/* 与横屏一致:顶栏不加底色和分隔线,直接叠在沉浸背景上 */}
       {useModernUI
-        ? (
-            <Surface
-              variant="blur"
-              radius="none"
-              elevation="none"
-              style={{ flex: 1, paddingHorizontal: tokens.spacing.xs, borderBottomWidth: 1, borderBottomColor: colors['c-border-background'] }}
-            >
-              {content}
-            </Surface>
-          )
+        ? <View style={{ flex: 1, paddingHorizontal: tokens.spacing.xs }}>{content}</View>
         : content}
       <SoundEffectPopup ref={soundEffectPopupRef} layoutMode="stacked" />
       <SettingPopup ref={popupRef} direction="vertical" />
