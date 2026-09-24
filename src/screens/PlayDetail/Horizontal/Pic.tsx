@@ -48,7 +48,8 @@ export default memo(({ componentId }: { componentId: string }) => {
     : { ...styles.content, elevation: animated ? 3 : 0 }
 
   return (
-    <View style={{ ...styles.container, height: contentHeight }}>
+    // 现代 UI 的封面阴影需要露出容器,否则在 iPhone 横屏这类矮屏上会被裁成硬边矩形;封面尺寸本就小于容器,不会溢出
+    <View style={{ ...styles.container, height: contentHeight, overflow: useModernUI ? 'visible' : 'hidden' }}>
       <View style={contentStyle}>
         <Image url={pic} retryCount={PLAYER_PIC_RETRY_COUNT} nativeID={NAV_SHEAR_NATIVE_IDS.playDetail_pic} style={{
           width: imgWidth,
