@@ -1,8 +1,9 @@
-import { memo, useCallback, useMemo, useRef, useState } from 'react'
-import { Dimensions, Platform, StyleSheet, View } from 'react-native'
+import { memo, useCallback, useMemo, useState } from 'react'
+import { Platform, StyleSheet, View } from 'react-native'
 
 import { useDesignTokens } from '@/theme/v2'
-import { useHorizontalMode, useKeyboard, useWindowSize } from '@/utils/hooks'
+import { useHorizontalMode, useKeyboard, useSafeAreaInsets, useWindowSize } from '@/utils/hooks'
+import { safeAreaInsetsTools } from '@/utils/safeAreaInsets'
 import { usePageVisible } from '@/store/common/hook'
 import { useIsPlay, usePlayerMusicInfo, useProgress, useStatusText } from '@/store/player/hook'
 import { useSettingValue } from '@/store/setting/hook'
@@ -89,8 +90,6 @@ const getVerticalMetrics = (windowHeight: number): BarMetrics => {
 
 // iPhone 底部安全区 34 → 留 20;iPad 安全区 20 → 留 12
 const getHomeIndicatorReserve = (bottomInset: number) => bottomInset > 0 ? Math.max(bottomInset - 14, 12) : 0
-// 安全区高度只在首次测量时有跳动,缓存后其他页面的播放条直接使用
-let cachedBottomInset = 0
 
 const handlePlayPrev = () => {
   markTimeoutExitInteraction()
@@ -262,33 +261,20 @@ export const PlayerBarV2 = memo(({ isHome = false }: PlayerBarV2Props) => {
   const windowSize = useWindowSize()
   const metrics = useMemo(() => isHorizontal ? HORIZONTAL_METRICS : getVerticalMetrics(windowSize.height), [isHorizontal, windowSize.height])
   const [autoUpdate, setAutoUpdate] = useState(true)
-  const [measuredBottomInset, setMeasuredBottomInset] = useState(cachedBottomInset)
-  const wrapRef = useRef<View>(null)
-  const bottomInset = isHorizontal ? 0 : measuredBottomInset
-  const appliedBottomInsetRef = useRef(bottomInset)
-  appliedBottomInsetRef.current = bottomInset
+  const safeAreaInsets = useSafeAreaInsets()
+  // 安全区由页面 SafeAreaView 测出(见 PageContent);App 启动时第一帧可能还没测到,
+  // 先隐藏播放条,避免铺进安全区时往下跳一下
+  const isWaitingInsets = Platform.OS == 'ios' && !safeAreaInsetsTools.measured
+  const bottomInset = isHorizontal ? 0 : safeAreaInsets.bottom
 
   usePageVisible([COMPONENT_IDS.home], useCallback((visible) => {
     if (isHome) setAutoUpdate(visible)
   }, [isHome]))
 
-  // RN 自带的 SafeAreaView 拿不到 inset:播放条位于页面 SafeAreaView 底部,
-  // 用它在窗口中的底边反推底部安全区高度(已铺进安全区的部分用当前生效值补回)
-  const handleLayout = useCallback(() => {
-    if (Platform.OS != 'ios' || isHorizontal) return
-    wrapRef.current?.measureInWindow((x, y, width, height) => {
-      if (!height) return
-      const inset = Math.round(Dimensions.get('window').height - (y + height) + appliedBottomInsetRef.current)
-      if (inset < 0 || inset > 60 || inset == appliedBottomInsetRef.current) return
-      cachedBottomInset = inset
-      setMeasuredBottomInset(inset)
-    })
-  }, [isHorizontal])
-
   const homeIndicatorReserve = getHomeIndicatorReserve(bottomInset)
 
   const body = useMemo(() => (
-    <View ref={wrapRef} onLayout={handleLayout} style={{ marginBottom: -bottomInset }}>
+    <View style={{ marginBottom: -bottomInset, opacity: isWaitingInsets ? 0 : 1 }}>
       <Surface
         variant="blur"
         radius="none"
@@ -317,7 +303,7 @@ export const PlayerBarV2 = memo(({ isHome = false }: PlayerBarV2Props) => {
         <ProgressStrip autoUpdate={autoUpdate} bottom={homeIndicatorReserve} metrics={metrics} />
       </Surface>
     </View>
-  ), [tokens, isHome, autoUpdate, metrics, bottomInset, homeIndicatorReserve, handleLayout])
+  ), [tokens, isHome, autoUpdate, metrics, bottomInset, homeIndicatorReserve, isWaitingInsets])
 
   return autoHidePlayBar && keyboardShown ? null : body
 })
