@@ -68,11 +68,12 @@ const PreassBar = memo(({ onDragState, setDragProgress, onSetProgress }: {
 })
 
 
-export const ProgressPlain = ({ progress, duration, buffered, paddingTop }: {
+export const ProgressPlain = ({ progress, duration, buffered, paddingTop, paddingBottom }: {
   progress: number
   duration: number
   buffered: number
   paddingTop?: number
+  paddingBottom?: number
 }) => {
   const theme = useTheme()
   const progressStr: `${number}%` = `${progress * 100}%`
@@ -82,11 +83,11 @@ export const ProgressPlain = ({ progress, duration, buffered, paddingTop }: {
     durationRef.current = duration
   }, [duration])
 
-  // paddingTop 只缩小内层"可视 bar"的占位;外层 wrapper 与 PreassBar 一直按全高布局,
+  // paddingTop / paddingBottom 只缩小内层"可视 bar"的占位;外层 wrapper 与 PreassBar 一直按全高布局,
   // 这样既能把进度条画成细线,触控/拖动区仍是整个容器。
   return (
     <View style={styles.progress}>
-      <View style={{ flex: 1, paddingTop }}>
+      <View style={{ flex: 1, paddingTop, paddingBottom }}>
         <DefaultBar />
         <BufferedBar progress={buffered} />
         <View style={{ ...styles.progressBar, backgroundColor: theme['c-primary-alpha-900'], width: progressStr, position: 'absolute', left: 0, top: 0 }} />
@@ -96,11 +97,12 @@ export const ProgressPlain = ({ progress, duration, buffered, paddingTop }: {
   )
 }
 
-const Progress = ({ progress, duration, buffered, paddingTop }: {
+const Progress = ({ progress, duration, buffered, paddingTop, paddingBottom }: {
   progress: number
   duration: number
   buffered: number
   paddingTop?: number
+  paddingBottom?: number
 }) => {
   const theme = useTheme()
   const [draging, setDraging] = useState(false)
@@ -116,11 +118,11 @@ const Progress = ({ progress, duration, buffered, paddingTop }: {
     global.app_event.setProgress(progress * durationRef.current)
   }, [])
 
-  // paddingTop 只缩小内层"可视 bar"的占位;外层 wrapper 与 PreassBar 一直按全高布局,
+  // paddingTop / paddingBottom 只缩小内层"可视 bar"的占位;外层 wrapper 与 PreassBar 一直按全高布局,
   // 这样既能把进度条画成细线,触控/拖动区仍是整个容器。
   return (
     <View style={styles.progress}>
-      <View style={{ flex: 1, paddingTop }}>
+      <View style={{ flex: 1, paddingTop, paddingBottom }}>
         <DefaultBar />
         <BufferedBar progress={buffered} />
         {
