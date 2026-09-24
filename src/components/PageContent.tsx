@@ -1,14 +1,15 @@
 // import { useEffect, useState } from 'react'
-import { Platform, SafeAreaView, StyleSheet, View } from 'react-native'
+import { Platform, SafeAreaView, StyleSheet, View, type LayoutChangeEvent, type LayoutRectangle } from 'react-native'
 import { useTheme } from '@/store/theme/hook'
 import ImageBackground from '@/components/common/ImageBackground'
 import { useWindowSize } from '@/utils/hooks'
 import { isHorizontalMode } from '@/utils/tools'
-import { useMemo } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import { scaleSizeAbsHR } from '@/utils/pixelRatio'
 import { defaultHeaders } from './common/Image'
 import SizeView from './SizeView'
 import { useBgPic } from '@/store/common/hook'
+import { safeAreaInsetsTools } from '@/utils/safeAreaInsets'
 
 interface Props {
   children: React.ReactNode
@@ -24,11 +25,35 @@ const IPHONE_LANDSCAPE_TOP_GAP = 12
 
 const ContentContainer = ({ children }: Props) => {
   const windowSize = useWindowSize()
+  const outerSizeRef = useRef<LayoutRectangle | null>(null)
+  const innerFrameRef = useRef<LayoutRectangle | null>(null)
+
+  // 内层 View 在 SafeAreaView 中的位置即安全区内边距,记录下来供弹窗等不在页面 SafeAreaView 内的视图使用
+  const updateInsets = useCallback(() => {
+    const outer = outerSizeRef.current
+    const inner = innerFrameRef.current
+    if (!outer || !inner || !outer.width || !outer.height) return
+    safeAreaInsetsTools.setInsets({
+      top: inner.y,
+      left: inner.x,
+      right: Math.max(outer.width - inner.x - inner.width, 0),
+      bottom: Math.max(outer.height - inner.y - inner.height, 0),
+    })
+  }, [])
+  const handleOuterLayout = useCallback((event: LayoutChangeEvent) => {
+    outerSizeRef.current = event.nativeEvent.layout
+    updateInsets()
+  }, [updateInsets])
+  const handleInnerLayout = useCallback((event: LayoutChangeEvent) => {
+    innerFrameRef.current = event.nativeEvent.layout
+    updateInsets()
+  }, [updateInsets])
+
   if (Platform.OS == 'ios') {
     const isIPhoneLandscape = !Platform.isPad && isHorizontalMode(windowSize.width, windowSize.height)
     return (
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={{ flex: 1, paddingTop: isIPhoneLandscape ? IPHONE_LANDSCAPE_TOP_GAP : 0 }}>
+      <SafeAreaView style={{ flex: 1 }} onLayout={handleOuterLayout}>
+        <View style={{ flex: 1, paddingTop: isIPhoneLandscape ? IPHONE_LANDSCAPE_TOP_GAP : 0 }} onLayout={handleInnerLayout}>
           {children}
         </View>
       </SafeAreaView>

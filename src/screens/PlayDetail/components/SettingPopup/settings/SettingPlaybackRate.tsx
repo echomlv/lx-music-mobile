@@ -68,15 +68,17 @@ export default () => {
       <Text>{t('play_detail_setting_playback_rate')}</Text>
       <View style={styles.content}>
         <Text style={styles.label} color={theme['c-font-label']}>{`${((isSliding ? sliderSize : playbackRate) / 100).toFixed(2)}x`}</Text>
-        <Slider
-          minimumValue={MIN_VALUE}
-          maximumValue={MAX_VALUE}
-          onSlidingComplete={handleSlidingComplete}
-          onValueChange={handleValueChange}
-          onSlidingStart={handleSlidingStart}
-          step={1}
-          value={playbackRate}
-        />
+        <View style={styles.sliderWrap}>
+          <Slider
+            minimumValue={MIN_VALUE}
+            maximumValue={MAX_VALUE}
+            onSlidingComplete={handleSlidingComplete}
+            onValueChange={handleValueChange}
+            onSlidingStart={handleSlidingStart}
+            step={1}
+            value={playbackRate}
+          />
+        </View>
       </View>
       <ButtonPrimary onPress={handleReset}>{t('play_detail_setting_playback_rate_reset')}</ButtonPrimary>
     </View>

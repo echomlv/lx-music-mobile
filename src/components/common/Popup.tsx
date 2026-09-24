@@ -1,15 +1,16 @@
 import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react'
-import { View, TouchableOpacity, SafeAreaView, type ViewStyle } from 'react-native'
+import { View, TouchableOpacity, type ViewStyle } from 'react-native'
 
 import Modal, { type ModalType } from './Modal'
 import { Icon } from '@/components/common/Icon'
-import { useKeyboard } from '@/utils/hooks'
+import { useKeyboard, useSafeAreaInsets } from '@/utils/hooks'
 import { createStyle } from '@/utils/tools'
 import { useTheme } from '@/store/theme/hook'
 import Text from './Text'
 import { useStatusbarHeight } from '@/store/common/hook'
 import { useSettingValue } from '@/store/setting/hook'
 import { SheetSurface } from '@/components/v2/molecules'
+import { type SafeAreaInsets } from '@/utils/safeAreaInsets'
 
 const styles = createStyle({
   shrink: {
@@ -65,6 +66,17 @@ const getSheetRadius = (position: NonNullable<PopupProps['position']>): ViewStyl
   }
 }
 
+// 只给面板实际贴到的屏幕边留出安全区:底部弹出时顶边不贴屏幕,侧边弹出时对侧不贴屏幕
+const getSafeAreaPadding = (position: NonNullable<PopupProps['position']>, insets: SafeAreaInsets): ViewStyle => {
+  switch (position) {
+    case 'top': return { paddingTop: insets.top, paddingLeft: insets.left, paddingRight: insets.right }
+    case 'left': return { paddingTop: insets.top, paddingLeft: insets.left, paddingBottom: insets.bottom }
+    case 'right': return { paddingTop: insets.top, paddingRight: insets.right, paddingBottom: insets.bottom }
+    case 'bottom':
+    default: return { paddingLeft: insets.left, paddingRight: insets.right, paddingBottom: insets.bottom }
+  }
+}
+
 export interface PopupProps {
   onHide?: () => void
   keyHide?: boolean
@@ -92,6 +104,7 @@ export default forwardRef<PopupType, PopupProps>(({
   const useModernUI = useSettingValue('theme.useModernUI')
   const { keyboardShown, keyboardHeight } = useKeyboard()
   const statusBarHeight = useStatusbarHeight()
+  const safeAreaInsets = useSafeAreaInsets()
 
   const modalRef = useRef<ModalType>(null)
 
@@ -138,8 +151,9 @@ export default forwardRef<PopupType, PopupProps>(({
             justifyContent: 'flex-start',
           },
           {
-            minWidth: '45%',
-            maxWidth: '78%',
+            // 宽度固定,不随内容伸缩:内部 SafeAreaView 在 iPhone 横屏会异步加上左右刘海内边距,
+            // 若面板宽度由内容决定,内边距与宽度会互相影响、来回抖动
+            width: '45%',
             height: '100%',
             paddingTop: statusBarHeight,
             // backgroundColor: 'white',
@@ -157,8 +171,9 @@ export default forwardRef<PopupType, PopupProps>(({
             justifyContent: 'flex-end',
           },
           {
-            minWidth: '45%',
-            maxWidth: '78%',
+            // 宽度固定,不随内容伸缩:内部 SafeAreaView 在 iPhone 横屏会异步加上左右刘海内边距,
+            // 若面板宽度由内容决定,内边距与宽度会互相影响、来回抖动
+            width: '45%',
             height: '100%',
             paddingTop: statusBarHeight,
             // backgroundColor: 'white',
@@ -185,13 +200,15 @@ export default forwardRef<PopupType, PopupProps>(({
     }
   }, [position, statusBarHeight])
   const sheetRadius = useMemo(() => getSheetRadius(position), [position])
+  const safeAreaPadding = useMemo(() => getSafeAreaPadding(position, safeAreaInsets), [position, safeAreaInsets])
 
   return (
     <Modal onHide={onHide} keyHide={keyHide} bgHide={bgHide} bgColor="rgba(50,50,50,.2)" ref={modalRef}>
       <View style={{ ...styles.centeredView, ...centeredViewStyle, paddingBottom: keyboardShown ? keyboardHeight : 0 }}>
         <View style={{ ...styles.modalView, ...modalViewStyle, ...sheetRadius, overflow: 'hidden', backgroundColor: theme['c-content-background'] }} onStartShouldSetResponder={() => true}>
-          {/* Modal 内容不受页面 SafeAreaView 约束:面板背景铺满到屏幕边缘,内容让出刘海/状态栏/Home 条 */}
-          <SafeAreaView style={styles.shrink}>
+          {/* Modal 内容不受页面 SafeAreaView 约束:面板背景铺满到屏幕边缘,内容让出刘海/状态栏/Home 条。
+              不用 RN 的 SafeAreaView:它的内边距在首次布局后才异步补上,弹窗打开时内容会跳一下 */}
+          <View style={[styles.shrink, safeAreaPadding]}>
             {useModernUI
               ? (
                   <SheetSurface
@@ -214,7 +231,7 @@ export default forwardRef<PopupType, PopupProps>(({
                     {children}
                   </>
                 )}
-          </SafeAreaView>
+          </View>
         </View>
       </View>
     </Modal>
