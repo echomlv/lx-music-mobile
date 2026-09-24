@@ -75,16 +75,9 @@ const Horizontal = () => {
       >
         <NavList onChangeId={id => { mainRef.current?.setActiveId(id) }} />
       </Surface>
+      {/* 各分组(Section)自带卡片,这里不再额外包一层卡片,与竖屏保持一致 */}
       <ScrollView keyboardShouldPersistTaps="always" style={{ flex: 1 }} contentContainerStyle={{ padding: tokens.spacing.lg }}>
-        <Surface
-          variant="solid"
-          radius="lg"
-          elevation="sm"
-          backgroundColor={colors['c-content-background']}
-          style={{ padding: 0 }}
-        >
-          <Main ref={mainRef} />
-        </Surface>
+        <Main ref={mainRef} />
       </ScrollView>
     </View>
   )
