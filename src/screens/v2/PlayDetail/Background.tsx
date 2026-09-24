@@ -6,7 +6,7 @@ import { useDesignTokens } from '@/theme/v2'
 import { useHorizontalMode } from '@/utils/hooks'
 import { usePlayerMusicInfo } from '@/store/player/hook'
 import { isBlurAvailable } from '@/components/v2/atoms'
-import Image from '@/components/common/Image'
+import Image, { PLAYER_PIC_RETRY_COUNT } from '@/components/common/Image'
 
 let BlurView: typeof import('@react-native-community/blur').BlurView | null = null
 if (isBlurAvailable()) {
@@ -31,7 +31,7 @@ export default memo(() => {
   return (
     <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
       {musicInfo.pic
-        ? <Image url={musicInfo.pic} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
+        ? <Image url={musicInfo.pic} retryCount={PLAYER_PIC_RETRY_COUNT} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
         : <View style={[StyleSheet.absoluteFillObject, { backgroundColor: bg }]} />}
       {BlurView
         ? <BlurView style={StyleSheet.absoluteFillObject} blurType="regular" blurAmount={50} reducedTransparencyFallbackColor={bg} />

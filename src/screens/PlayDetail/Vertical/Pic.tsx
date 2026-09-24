@@ -6,7 +6,7 @@ import { useWindowSize } from '@/utils/hooks'
 import { NAV_SHEAR_NATIVE_IDS } from '@/config/constant'
 import { useNavigationComponentDidAppear } from '@/navigation'
 import { HEADER_HEIGHT } from './components/Header'
-import Image from '@/components/common/Image'
+import Image, { PLAYER_PIC_RETRY_COUNT } from '@/components/common/Image'
 import { useStatusbarHeight } from '@/store/common/hook'
 import { useSettingValue } from '@/store/setting/hook'
 import commonState from '@/store/common/state'
@@ -52,7 +52,7 @@ export default ({ componentId }: { componentId: string }) => {
   return (
     <View style={styles.container}>
       <View style={contentStyle}>
-        <Image url={pic} nativeID={NAV_SHEAR_NATIVE_IDS.playDetail_pic} style={style} />
+        <Image url={pic} retryCount={PLAYER_PIC_RETRY_COUNT} nativeID={NAV_SHEAR_NATIVE_IDS.playDetail_pic} style={style} />
       </View>
     </View>
   )

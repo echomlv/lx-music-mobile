@@ -185,10 +185,10 @@ const handleRestorePlay = async(restorePlayInfo: LX.Player.SavedPlayInfo) => {
   void initTrackInfo(musicInfo, playerState.musicInfo)
 
   void getPicPath({ musicInfo, listId: playMusicInfo.listId }).then((url: string) => {
+    // 不跳过上次加载失败的地址:封面组件自带重试,重新播放时应再给一次机会
     if (
       musicInfo.id != playMusicInfo.musicInfo?.id ||
-      playerState.musicInfo.pic == url ||
-      playerState.loadErrorPicUrl == url
+      playerState.musicInfo.pic == url
     ) return
     setMusicInfo({ pic: url })
     global.app_event.picUpdated()
@@ -220,8 +220,7 @@ const debouncePlay = debounceBackgroundTimer((musicInfo: LX.Player.PlayMusic) =>
   void getPicPath({ musicInfo, listId: playerState.playMusicInfo.listId }).then((url: string) => {
     if (
       musicInfo.id != playerState.playMusicInfo.musicInfo?.id ||
-      playerState.musicInfo.pic == url ||
-      playerState.loadErrorPicUrl == url) return
+      playerState.musicInfo.pic == url) return
     setMusicInfo({ pic: url })
     global.app_event.picUpdated()
   })

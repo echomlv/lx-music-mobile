@@ -18,7 +18,7 @@ import { markTimeoutExitInteraction } from '@/core/player/timeoutExit'
 import { COMPONENT_IDS, LIST_IDS, NAV_SHEAR_NATIVE_IDS } from '@/config/constant'
 import { formatMusicName } from '@/utils/tools'
 
-import Image from '@/components/common/Image'
+import Image, { PLAYER_PIC_RETRY_COUNT } from '@/components/common/Image'
 import Progress, { ProgressPlain } from '@/components/player/Progress'
 
 import { IconButton, Surface, Typography, V2Pressable } from '@/components/v2/atoms'
@@ -77,6 +77,7 @@ const Cover = memo(({ isHome }: { isHome: boolean }) => {
     >
       <Image
         url={musicInfo.pic}
+        retryCount={PLAYER_PIC_RETRY_COUNT}
         nativeID={NAV_SHEAR_NATIVE_IDS.playDetail_pic}
         style={{ width: COVER_SIZE, height: COVER_SIZE }}
         onError={handleError}

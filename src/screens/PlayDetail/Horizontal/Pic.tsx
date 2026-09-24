@@ -8,7 +8,7 @@ import { createStyle } from '@/utils/tools'
 import { HEADER_HEIGHT } from './components/Header'
 import { BTN_WIDTH } from './MoreBtn/Btn'
 import { marginLeft } from './constant'
-import Image from '@/components/common/Image'
+import Image, { PLAYER_PIC_RETRY_COUNT } from '@/components/common/Image'
 import { useStatusbarHeight } from '@/store/common/hook'
 import { useSettingValue } from '@/store/setting/hook'
 import commonState from '@/store/common/state'
@@ -50,7 +50,7 @@ export default memo(({ componentId }: { componentId: string }) => {
   return (
     <View style={{ ...styles.container, height: contentHeight }}>
       <View style={contentStyle}>
-        <Image url={pic} nativeID={NAV_SHEAR_NATIVE_IDS.playDetail_pic} style={{
+        <Image url={pic} retryCount={PLAYER_PIC_RETRY_COUNT} nativeID={NAV_SHEAR_NATIVE_IDS.playDetail_pic} style={{
           width: imgWidth,
           height: imgWidth,
           borderRadius: useModernUI ? 14 : 2,

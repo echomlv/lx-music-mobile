@@ -1,7 +1,7 @@
 import { useTheme } from '@/store/theme/hook'
 import { BorderRadius } from '@/theme'
 import { createStyle } from '@/utils/tools'
-import { type ComponentProps, memo, useCallback, useEffect, useMemo, useState } from 'react'
+import { type ComponentProps, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { View, type ViewProps, StyleSheet, Image as FastImage } from 'react-native'
 // import FastImage, { type FastImageProps } from 'react-native-fast-image'
 import Text from './Text'
@@ -14,7 +14,13 @@ export interface ImageProps extends ViewProps {
   cache?: boolean
   resizeMode?: ComponentProps<typeof FastImage>['resizeMode']
   onError?: (url: string | number) => void
+  /** 加载失败后的重试次数,全部失败才显示默认图并触发 onError */
+  retryCount?: number
 }
+
+const RETRY_BASE_DELAY = 1000
+// 播放器封面(播放栏/播放详情)的重试次数
+export const PLAYER_PIC_RETRY_COUNT = 2
 
 
 export const defaultHeaders = {
@@ -55,14 +61,31 @@ const EmptyPic = memo(({ style, nativeID }: { style: ImageProps['style'], native
   )
 })
 
-const Image = memo(({ url, cache, resizeMode = 'cover', style, onError, nativeID }: ImageProps) => {
+const Image = memo(({ url, cache, resizeMode = 'cover', style, onError, nativeID, retryCount = 0 }: ImageProps) => {
   const [isError, setError] = useState(false)
+  const [retryAttempt, setRetryAttempt] = useState(0)
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const clearRetryTimer = () => {
+    if (!retryTimer.current) return
+    clearTimeout(retryTimer.current)
+    retryTimer.current = null
+  }
   const handleError = useCallback(() => {
+    if (retryAttempt < retryCount) {
+      clearRetryTimer()
+      retryTimer.current = setTimeout(() => {
+        retryTimer.current = null
+        setRetryAttempt(retryAttempt + 1)
+      }, RETRY_BASE_DELAY * 2 ** retryAttempt)
+      return
+    }
     setError(true)
     onError?.(url!)
-  }, [onError, url])
+  }, [onError, url, retryAttempt, retryCount])
   useEffect(() => {
     setError(false)
+    setRetryAttempt(0)
+    return clearRetryTimer
   }, [url])
   let uri = typeof url == 'number'
     ? FastImage.resolveAssetSource(url).uri
@@ -72,6 +95,8 @@ const Image = memo(({ url, cache, resizeMode = 'cover', style, onError, nativeID
     showDefault ? <EmptyPic style={style} nativeID={nativeID} />
       : (
           <FastImage
+            // 换 key 重新挂载,触发重新请求
+            key={retryAttempt}
             style={style}
             source={{
               uri: uri!,
@@ -89,6 +114,7 @@ const Image = memo(({ url, cache, resizeMode = 'cover', style, onError, nativeID
 }, (prevProps, nextProps) => {
   return prevProps.url == nextProps.url &&
     prevProps.style == nextProps.style &&
+    prevProps.retryCount == nextProps.retryCount &&
     prevProps.nativeID == nextProps.nativeID
 })
 
