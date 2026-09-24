@@ -10,6 +10,9 @@ import { useHorizontalMode } from '@/utils/hooks'
 import { useSettingValue } from '@/store/setting/hook'
 import { useDesignTokens } from '@/theme/v2'
 
+// 部分音源的歌单简介是 HTML:<br> 转为换行,其余标签去掉
+const formatDesc = (desc: string) => desc.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').trim()
+
 export interface MusicListProps {
   componentId: string
 }
@@ -32,6 +35,7 @@ export default forwardRef<MusicListType, MusicListProps>(({ componentId }, ref) 
   const isSideLayout = useModernUI && isHorizontal
 
   const setHeaderInfo = (detailInfo: DetailInfo) => {
+    detailInfo = { ...detailInfo, desc: formatDesc(detailInfo.desc) }
     detailInfoRef.current = detailInfo
     headerRef.current?.setInfo(detailInfo)
   }
