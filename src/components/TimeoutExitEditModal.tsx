@@ -124,9 +124,9 @@ interface TimeInputType {
   focus: () => void
 }
 
-const TimeInput = forwardRef<TimeInputType, { onChange?: (text: string) => void }>(({ onChange }, ref) => {
+const TimeInput = forwardRef<TimeInputType, { onChange?: (text: string) => void, initialText?: string }>(({ onChange, initialText = '' }, ref) => {
   const theme = useTheme()
-  const [text, setText] = useState('')
+  const [text, setText] = useState(initialText)
   const inputRef = useRef<InputType>(null)
   const t = useI18n()
 
@@ -242,6 +242,8 @@ export default forwardRef<TimeoutExitEditModalType, TimeoutExitEditModalProps>((
   const timeInputRef = useRef<TimeInputType>(null)
   const [visible, setVisible] = useState(false)
   const [selection, setSelection] = useState<Selection>(PRESETS[0])
+  // 输入框只在选中「自定义」后才挂载,打开弹窗时通过 ref 回填会落空,所以同时记在 state 里供它挂载时初始化
+  const [customText, setCustomText] = useState('')
   const { tokens } = useDesignTokens()
   const t = useI18n()
 
@@ -250,9 +252,10 @@ export default forwardRef<TimeoutExitEditModalType, TimeoutExitEditModalProps>((
     requestAnimationFrame(() => {
       const saved = settingState.setting['player.timeoutExit']
       const next = resolveSelectionFromSetting(saved)
+      const text = next === 'custom' ? saved : ''
       setSelection(next)
-      if (next === 'custom') timeInputRef.current?.setText(saved)
-      else timeInputRef.current?.setText('')
+      setCustomText(text)
+      timeInputRef.current?.setText(text)
     })
   }
 
@@ -329,7 +332,7 @@ export default forwardRef<TimeoutExitEditModalType, TimeoutExitEditModalProps>((
               {selection === 'custom'
                 ? (
                     <View style={[styles.inputRow, { marginTop: tokens.spacing.md, gap: tokens.spacing.sm }]}>
-                      <TimeInput ref={timeInputRef} />
+                      <TimeInput ref={timeInputRef} initialText={customText} />
                       <Typography variant="label">{t('timeout_exit_min')}</Typography>
                     </View>
                   )
