@@ -1,5 +1,5 @@
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react'
-import { ScrollView, View } from 'react-native'
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { ScrollView, View, type LayoutChangeEvent } from 'react-native'
 import OnlineList, { type OnlineListType, type OnlineListProps } from '@/components/OnlineList'
 import { clearListDetail, getListDetail, setListDetail, setListDetailInfo } from '@/core/songlist'
 import songlistState from '@/store/songlist/state'
@@ -9,6 +9,7 @@ import { useListInfo } from './state'
 import { useHorizontalMode } from '@/utils/hooks'
 import { useSettingValue } from '@/store/setting/hook'
 import { useDesignTokens } from '@/theme/v2'
+import { isHorizontalMode } from '@/utils/tools'
 
 // 部分音源的歌单简介是 HTML:<br> 转为换行,其余标签去掉
 const formatDesc = (desc: string) => desc.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').trim()
@@ -28,9 +29,17 @@ export default forwardRef<MusicListType, MusicListProps>(({ componentId }, ref) 
   const hostUinRef = useRef<string | undefined>()
   const info = useListInfo()
   const detailInfoRef = useRef<DetailInfo>()
-  const isHorizontal = useHorizontalMode()
   const useModernUI = useSettingValue('theme.useModernUI')
   const { colors } = useDesignTokens()
+  // 按页面容器自身的实际尺寸判断横竖屏:iOS 旋转后全局窗口尺寸的 Hook 在本页可能停留在旧值,
+  // 而容器的 onLayout 由原生布局驱动,旋转后一定会触发。首次布局前先用全局判断作为初始值
+  const isHorizontalInit = useHorizontalMode()
+  const [isHorizontal, setHorizontal] = useState(isHorizontalInit)
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout
+    if (!width || !height) return
+    setHorizontal(isHorizontalMode(width, height))
+  }
   // 现代 UI 横屏时歌单信息放在左侧固定栏,歌曲列表占右侧
   const isSideLayout = useModernUI && isHorizontal
 
@@ -136,7 +145,7 @@ export default forwardRef<MusicListType, MusicListProps>(({ componentId }, ref) 
 
   // 两种布局保持相同的节点结构,切换横竖屏时 OnlineList 不会重新挂载而丢失已加载的列表
   return (
-    <View style={{ flex: 1, flexDirection: isSideLayout ? 'row' : 'column' }}>
+    <View style={{ flex: 1, flexDirection: isSideLayout ? 'row' : 'column' }} onLayout={handleLayout}>
       {isSideLayout
         ? (
             <View style={{ width: '30%', minWidth: 220, maxWidth: 360, borderRightWidth: 1, borderRightColor: colors['c-border-background'] }}>
