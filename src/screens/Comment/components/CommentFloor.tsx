@@ -21,9 +21,11 @@ const defaultUser = require('@/resources/images/defaultUser.jpg')
 const GAP = 12
 const avatarWidth = scaleSizeW(36)
 
-const CommentFloor = memo(({ comment, isLast }: {
+const CommentFloor = memo(({ comment, isLast, isReply = false }: {
   comment: Comment
   isLast?: boolean
+  /** 楼中楼回复:现代 UI 下不再做成卡片,只用缩进 + 分隔线 */
+  isReply?: boolean
 }) => {
   const theme = useTheme()
   const useModernUI = useSettingValue('theme.useModernUI')
@@ -43,13 +45,13 @@ const CommentFloor = memo(({ comment, isLast }: {
       <View style={{
         ...styles.replyFloor,
         ...(useModernUI
-          ? { marginTop: tokens.spacing.md, marginLeft: 0, paddingTop: tokens.spacing.sm, borderTopWidth: BorderWidths.normal, borderTopColor: semanticColors.border }
+          ? { marginTop: tokens.spacing.md, marginLeft: 0, paddingLeft: tokens.spacing.lg, borderTopWidth: BorderWidths.normal, borderTopColor: semanticColors.border }
           : {}),
       }}>
         {useModernUI ? null : <DashedLine color={theme['c-list-header-border-bottom']} thickness={BorderWidths.normal} />}
         {
           comment.reply.map((c, index) => (
-            <CommentFloor comment={c} isLast={index === endIndex} key={`${comment.id}_${c.id}`} />
+            <CommentFloor comment={c} isLast={index === endIndex} isReply key={`${comment.id}_${c.id}`} />
           ))
         }
       </View>
@@ -70,15 +72,23 @@ const CommentFloor = memo(({ comment, isLast }: {
     <View style={{
       ...styles.container,
       ...(useModernUI
-        ? {
-            marginTop: tokens.spacing.sm,
-            padding: tokens.spacing.md,
-            paddingBottom: tokens.spacing.md,
-            borderBottomWidth: 0,
-            borderRadius: tokens.radius.lg,
-            backgroundColor: semanticColors.surfaceElevated,
-            ...tokens.elevation.sm,
-          }
+        ? isReply
+          ? {
+              marginTop: 0,
+              paddingTop: tokens.spacing.md,
+              paddingBottom: tokens.spacing.md,
+              borderBottomWidth: isLast ? 0 : BorderWidths.normal,
+              borderBottomColor: semanticColors.border,
+            }
+          : {
+              marginTop: tokens.spacing.sm,
+              padding: tokens.spacing.md,
+              paddingBottom: tokens.spacing.md,
+              borderBottomWidth: 0,
+              borderRadius: tokens.radius.lg,
+              backgroundColor: semanticColors.surfaceElevated,
+              ...tokens.elevation.sm,
+            }
         : {
             paddingBottom: isLast ? 0 : GAP,
           }),
