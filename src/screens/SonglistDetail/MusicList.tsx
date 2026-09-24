@@ -1,10 +1,14 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react'
+import { ScrollView, View } from 'react-native'
 import OnlineList, { type OnlineListType, type OnlineListProps } from '@/components/OnlineList'
 import { clearListDetail, getListDetail, setListDetail, setListDetailInfo } from '@/core/songlist'
 import songlistState from '@/store/songlist/state'
 import { handlePlay } from './listAction'
-import Header, { type HeaderType } from './Header'
+import Header, { type DetailInfo, type HeaderType } from './Header'
 import { useListInfo } from './state'
+import { useHorizontalMode } from '@/utils/hooks'
+import { useSettingValue } from '@/store/setting/hook'
+import { useDesignTokens } from '@/theme/v2'
 
 export interface MusicListProps {
   componentId: string
@@ -20,6 +24,17 @@ export default forwardRef<MusicListType, MusicListProps>(({ componentId }, ref) 
   const isUnmountedRef = useRef(false)
   const hostUinRef = useRef<string | undefined>()
   const info = useListInfo()
+  const detailInfoRef = useRef<DetailInfo>()
+  const isHorizontal = useHorizontalMode()
+  const useModernUI = useSettingValue('theme.useModernUI')
+  const { colors } = useDesignTokens()
+  // 现代 UI 横屏时歌单信息放在左侧固定栏,歌曲列表占右侧
+  const isSideLayout = useModernUI && isHorizontal
+
+  const setHeaderInfo = (detailInfo: DetailInfo) => {
+    detailInfoRef.current = detailInfo
+    headerRef.current?.setInfo(detailInfo)
+  }
 
   useImperativeHandle(ref, () => ({
     async loadList(source, id, hostUin) {
@@ -30,7 +45,7 @@ export default forwardRef<MusicListType, MusicListProps>(({ componentId }, ref) 
       if (listDetailInfo.id == id && listDetailInfo.source == source && listDetailInfo.list.length) {
         requestAnimationFrame(() => {
           listRef.current?.setList(listDetailInfo.list)
-          headerRef.current?.setInfo({
+          setHeaderInfo({
             name: (info.name || listDetailInfo.info.name) ?? '',
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             desc: listDetailInfo.info.desc || info.desc || '',
@@ -42,7 +57,7 @@ export default forwardRef<MusicListType, MusicListProps>(({ componentId }, ref) 
         listRef.current?.setStatus('loading')
         const page = 1
         setListDetailInfo(info.source, info.id)
-        headerRef.current?.setInfo({
+        setHeaderInfo({
           name: (info.name || listDetailInfo.info.name) ?? '',
           // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           desc: listDetailInfo.info.desc || info.desc || '',
@@ -53,7 +68,7 @@ export default forwardRef<MusicListType, MusicListProps>(({ componentId }, ref) 
           const result = setListDetail(listDetail, id, page)
           if (isUnmountedRef.current) return
           requestAnimationFrame(() => {
-            headerRef.current?.setInfo({
+            setHeaderInfo({
               name: (info.name || listDetailInfo.info.name) ?? '',
               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
               desc: listDetailInfo.info.desc || info.desc || '',
@@ -111,15 +126,30 @@ export default forwardRef<MusicListType, MusicListProps>(({ componentId }, ref) 
     })
   }
 
+  // 布局切换时 Header 会换位置重新挂载,用 detailInfoRef 恢复已加载的信息
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const header = useMemo(() => <Header ref={headerRef} componentId={componentId} />, [])
+  const header = useMemo(() => <Header ref={headerRef} componentId={componentId} side={isSideLayout} initInfo={detailInfoRef.current} />, [isSideLayout])
 
-  return <OnlineList
-    ref={listRef}
-    onPlayList={handlePlayList}
-    onRefresh={handleRefresh}
-    onLoadMore={handleLoadMore}
-    ListHeaderComponent={header}
-    // progressViewOffset={}
-   />
+  // 两种布局保持相同的节点结构,切换横竖屏时 OnlineList 不会重新挂载而丢失已加载的列表
+  return (
+    <View style={{ flex: 1, flexDirection: isSideLayout ? 'row' : 'column' }}>
+      {isSideLayout
+        ? (
+            <View style={{ width: '30%', minWidth: 220, maxWidth: 360, borderRightWidth: 1, borderRightColor: colors['c-border-background'] }}>
+              <ScrollView>{header}</ScrollView>
+            </View>
+          )
+        : null}
+      <View style={{ flex: 1 }}>
+        <OnlineList
+          ref={listRef}
+          onPlayList={handlePlayList}
+          onRefresh={handleRefresh}
+          onLoadMore={handleLoadMore}
+          ListHeaderComponent={isSideLayout ? null : header}
+          // progressViewOffset={}
+        />
+      </View>
+    </View>
+  )
 })

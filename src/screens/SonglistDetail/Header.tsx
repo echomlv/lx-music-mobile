@@ -62,6 +62,10 @@ const Pic = ({ componentId, playCount, imgUrl }: {
 
 export interface HeaderProps {
   componentId: string
+  /** 横屏侧栏布局:纵向排列,放在左侧固定栏中 */
+  side?: boolean
+  /** 初始信息;横竖屏切换时 Header 会重新挂载,用它恢复已加载的歌单信息 */
+  initInfo?: DetailInfo
 }
 
 export interface HeaderType {
@@ -75,12 +79,13 @@ export interface DetailInfo {
 }
 
 const COVER_V2 = scaleSizeW(110)
+const COVER_SIDE = 88
 
-const HeaderV1 = forwardRef<HeaderType, HeaderProps>(({ componentId }: { componentId: string }, ref) => {
+const HeaderV1 = forwardRef<HeaderType, HeaderProps>(({ componentId, initInfo }, ref) => {
   const statusBarHeight = useStatusbarHeight()
   const theme = useTheme()
   const info = useListInfo()
-  const [detailInfo, setDetailInfo] = useState<DetailInfo>({ name: '', desc: '', playCount: '', imgUrl: info.img })
+  const [detailInfo, setDetailInfo] = useState<DetailInfo>(initInfo ?? { name: '', desc: '', playCount: '', imgUrl: info.img })
 
   useImperativeHandle(ref, () => ({
     setInfo(info) {
@@ -104,9 +109,10 @@ const HeaderV1 = forwardRef<HeaderType, HeaderProps>(({ componentId }: { compone
   )
 })
 
-const PicV2 = ({ componentId, imgUrl }: {
+const PicV2 = ({ componentId, imgUrl, size = COVER_V2 }: {
   componentId: string
   imgUrl?: string
+  size?: number
 }) => {
   const [pic, setPic] = useState(imgUrl)
   const [animated, setAnimated] = useState(false)
@@ -124,28 +130,63 @@ const PicV2 = ({ componentId, imgUrl }: {
       variant="solid"
       radius="lg"
       elevation="sm"
-      style={{ width: COVER_V2, height: COVER_V2, overflow: 'hidden' }}
+      style={{ width: size, height: size, overflow: 'hidden' }}
     >
       <Image
         nativeID={`${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_to_${info.id}`}
         url={pic}
-        style={{ width: COVER_V2, height: COVER_V2 }}
+        style={{ width: size, height: size }}
       />
     </Surface>
   )
 }
 
-const HeaderV2 = forwardRef<HeaderType, HeaderProps>(({ componentId }, ref) => {
+const HeaderV2 = forwardRef<HeaderType, HeaderProps>(({ componentId, side = false, initInfo }, ref) => {
   const statusBarHeight = useStatusbarHeight()
   const { colors, tokens } = useDesignTokens()
   const info = useListInfo()
-  const [detailInfo, setDetailInfo] = useState<DetailInfo>({ name: '', desc: '', playCount: '', imgUrl: info.img })
+  const [detailInfo, setDetailInfo] = useState<DetailInfo>(initInfo ?? { name: '', desc: '', playCount: '', imgUrl: info.img })
 
   useImperativeHandle(ref, () => ({
     setInfo(info) {
       setDetailInfo(info)
     },
   }), [])
+
+  if (side) {
+    return (
+      <View style={{
+        paddingTop: statusBarHeight + tokens.spacing.lg,
+        paddingHorizontal: tokens.spacing.lg,
+        paddingBottom: tokens.spacing.lg,
+        gap: tokens.spacing.md,
+      }}>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: tokens.spacing.md }}>
+          <PicV2 componentId={componentId} imgUrl={detailInfo.imgUrl} size={COVER_SIDE} />
+          <View style={{ flex: 1 }} nativeID={NAV_SHEAR_NATIVE_IDS.songlistDetail_title}>
+            <Typography variant="subtitle" weight="700" numberOfLines={3}>
+              {detailInfo.name}
+            </Typography>
+            {detailInfo.playCount
+              ? (
+                  <Typography variant="caption" color={colors['c-font-label']} numberOfLines={1} style={{ marginTop: tokens.spacing.xs }}>
+                    {detailInfo.playCount}
+                  </Typography>
+                )
+              : null}
+          </View>
+        </View>
+        {detailInfo.desc
+          ? (
+              <Typography variant="caption" color={colors['c-font-label']} numberOfLines={4}>
+                {detailInfo.desc}
+              </Typography>
+            )
+          : null}
+        <ButtonBar compact />
+      </View>
+    )
+  }
 
   return (
     <Surface

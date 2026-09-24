@@ -77,7 +77,7 @@ const ActionBarV1 = () => {
   )
 }
 
-const ActionBarV2 = () => {
+const ActionBarV2 = ({ compact = false }: { compact?: boolean }) => {
   const { colors, tokens } = useDesignTokens()
   const t = useI18n()
   const info = useListInfo()
@@ -91,47 +91,70 @@ const ActionBarV2 = () => {
   }
   const { collected, collecting, collect, labelKey } = useCollect()
 
+  const playAllBtn = (
+    <PillButton
+      fullWidth
+      variant="primary"
+      size="sm"
+      label={t('play_all')}
+      leading={<Icon name="play" size={12} color={colors['c-primary-light-1000']} />}
+      onPress={handlePlayAll}
+      style={{ flex: 1 }}
+    />
+  )
+  const collectBtn = (
+    <PillButton
+      fullWidth
+      variant="secondary"
+      size="sm"
+      label={t(labelKey)}
+      leading={<Icon name={collected && !collecting ? 'love-fill' : 'love'} size={12} color={colors['c-primary']} />}
+      onPress={collect}
+      disabled={collecting}
+      style={{ flex: 1 }}
+    />
+  )
+  const backBtn = (
+    <PillButton
+      fullWidth
+      variant="ghost"
+      size="sm"
+      label={t('back')}
+      leading={<Icon name="chevron-left" size={12} color={colors['c-font']} />}
+      onPress={back}
+      style={{ flex: 1 }}
+    />
+  )
+
+  // 横屏侧栏较窄:播放全部独占一行,收藏与返回并排一行
+  if (compact) {
+    return (
+      <View style={{ gap: tokens.spacing.sm }}>
+        <View style={{ flexDirection: 'row' }}>{playAllBtn}</View>
+        <View style={{ flexDirection: 'row', gap: tokens.spacing.sm }}>
+          {collectBtn}
+          {backBtn}
+        </View>
+      </View>
+    )
+  }
+
   return (
     <View style={{
       flexDirection: 'row',
       paddingHorizontal: tokens.spacing.lg,
       gap: tokens.spacing.sm,
     }}>
-      <PillButton
-        fullWidth
-        variant="primary"
-        size="sm"
-        label={t('play_all')}
-        leading={<Icon name="play" size={12} color={colors['c-primary-light-1000']} />}
-        onPress={handlePlayAll}
-        style={{ flex: 1 }}
-      />
-      <PillButton
-        fullWidth
-        variant="secondary"
-        size="sm"
-        label={t(labelKey)}
-        leading={<Icon name={collected && !collecting ? 'love-fill' : 'love'} size={12} color={colors['c-primary']} />}
-        onPress={collect}
-        disabled={collecting}
-        style={{ flex: 1 }}
-      />
-      <PillButton
-        fullWidth
-        variant="ghost"
-        size="sm"
-        label={t('back')}
-        leading={<Icon name="chevron-left" size={12} color={colors['c-font']} />}
-        onPress={back}
-        style={{ flex: 1 }}
-      />
+      {playAllBtn}
+      {collectBtn}
+      {backBtn}
     </View>
   )
 }
 
-export default memo(() => {
+export default memo(({ compact }: { compact?: boolean }) => {
   const useModernUI = useSettingValue('theme.useModernUI')
-  return useModernUI ? <ActionBarV2 /> : <ActionBarV1 />
+  return useModernUI ? <ActionBarV2 compact={compact} /> : <ActionBarV1 />
 })
 
 const styles = createStyle({
