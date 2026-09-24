@@ -209,7 +209,7 @@ const EqualizerSection = memo(({
                         paddingLeft: frequencyIndex == 1 ? 8 : 0,
                       }}>
                       <View style={styles.equalizerSliderRow}>
-                        <Text size={13} style={styles.equalizerLabel}>{frequency >= 1000 ? `${frequency / 1000}k` : `${frequency}`}</Text>
+                        <Text size={13} style={styles.equalizerLabel} numberOfLines={1}>{frequency >= 1000 ? `${frequency / 1000}k` : `${frequency}`}</Text>
                         <View style={styles.sliderWrap}>
                           <Slider
                             minimumValue={minGain}
@@ -233,7 +233,7 @@ const EqualizerSection = memo(({
               {equalizerFrequencies.map(frequency => (
                 <View key={frequency} style={styles.stackedEqualizerItem}>
                   <View style={styles.equalizerSliderRow}>
-                    <Text size={13} style={styles.equalizerLabel}>{frequency >= 1000 ? `${frequency / 1000}k` : `${frequency}`}</Text>
+                    <Text size={13} style={styles.equalizerLabel} numberOfLines={1}>{frequency >= 1000 ? `${frequency / 1000}k` : `${frequency}`}</Text>
                     <View style={styles.sliderWrap}>
                       <Slider
                         minimumValue={minGain}
@@ -952,8 +952,9 @@ const styles = createStyle({
     alignItems: 'center',
     width: '100%',
   },
+  // 需容纳 3 位数频率(如 250、500),过窄会折成两行
   equalizerLabel: {
-    width: 24,
+    width: 32,
   },
   equalizerValue: {
     width: 38,
