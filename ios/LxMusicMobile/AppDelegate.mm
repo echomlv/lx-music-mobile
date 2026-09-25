@@ -4,6 +4,7 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTEventEmitter.h>
+#import <React/RCTLinkingManager.h>
 #import <ReactNativeNavigation/ReactNativeNavigation.h>
 #import <Security/Security.h>
 #import <AVFoundation/AVFoundation.h>
@@ -4686,6 +4687,13 @@ RCT_REMAP_METHOD(sha1, sha1:(NSString *)input resolver:(RCTPromiseResolveBlock)r
   self.initialProps = @{};
 
   return YES;
+}
+
+// Info.plist 声明了 LSSupportsOpeningDocumentsInPlace,系统要求实现该方法,否则运行中打开任何 URL(lxmusic:// 链接、
+// 从「文件」或其他应用打开的文件)都会触发断言崩溃;同时把 URL 转给 RN Linking,由 JS 的 deeplink 处理
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options
+{
+  return [RCTLinkingManager application:application openURL:url options:options];
 }
 
 - (NSArray<id<RCTBridgeModule>> *)extraModulesForBridge:(RCTBridge *)bridge {
