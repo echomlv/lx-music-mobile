@@ -72,6 +72,8 @@ export default async(setting: LX.AppSetting) => {
 
   global.app_event.on('play', play)
   global.app_event.on('pause', pause)
+  // 卡住缓冲时播放状态不变,但歌词要停住,恢复播放时 play 事件会按实际位置重新对齐
+  global.app_event.on('playerStalled', pause)
   global.app_event.on('stop', stop)
   global.app_event.on('error', pause)
   global.app_event.on('seekLyric', seek)

@@ -123,7 +123,10 @@ export const initUnifiedPlayerController = () => {
             if (event.driver == 'nativeFlac' && Platform.OS == 'ios' && (event.duration ?? 0) > 0 && playerState.musicInfo.id) {
               void updateMetaDataImmediately(playerState.musicInfo, playerState.isPlay, playerState.lastLyric)
             }
-            global.app_event.pause()
+            // 播放途中卡住缓冲时保持“播放中”,只暂停歌词:弱网下 AVPlayer 会频繁进出缓冲,
+            // 若每次都当作暂停,按钮和锁屏会在暂停/播放之间来回跳,且此时点按钮会变成“播放”而无法暂停
+            if (playerState.isPlay) global.app_event.playerStalled()
+            else global.app_event.pause()
             global.app_event.playerWaiting()
             setStatusText(global.i18n.t('player__buffering'))
             break

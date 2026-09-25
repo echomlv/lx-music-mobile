@@ -2,7 +2,7 @@ import TrackPlayer, { State } from 'react-native-track-player'
 import { Platform } from 'react-native'
 import { isNativeFlacActive, getNativeFlacState } from '../nativeFlac'
 import { UnifiedPlayerEventBus } from './EventBus'
-import { createTrackPlayerDriver } from './drivers/trackPlayerDriver'
+import { createTrackPlayerDriver, IOS_STALLED_STATE } from './drivers/trackPlayerDriver'
 import { createNativeFlacDriver } from './drivers/nativeFlacDriver'
 import type { UnifiedPlaybackState, UnifiedPlayerEvent } from './types'
 
@@ -64,7 +64,9 @@ export const getUnifiedPlaybackState = async(): Promise<UnifiedPlaybackState> =>
     case State.Ready:
       return 'paused'
     case State.None:
+      return 'idle'
     default:
+      if ((state as string) == IOS_STALLED_STATE) return 'buffering'
       return 'idle'
   }
 }

@@ -45,6 +45,13 @@ export class AppEvent extends Event {
   }
 
   /**
+   * 播放途中卡住缓冲,不改变播放/暂停状态
+   */
+  playerStalled() {
+    this.emit('playerStalled')
+  }
+
+  /**
    * 主动要求暂停(界面、锁屏/耳机、深链接、音频打断、定时退出),区别于播放器自身上报的暂停状态
    */
   userPause() {

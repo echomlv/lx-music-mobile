@@ -4,6 +4,10 @@ import { getCurrentTrackId } from '../../trackPlayerCore'
 import type { UnifiedPlaybackState } from '../types'
 import type { UnifiedPlayerEventBus } from '../EventBus'
 
+// iOS 上 SwiftAudioEx 在播放途中卡住缓冲时上报的原生状态值。TrackPlayer 的 State 枚举里没有对应项
+// (State.Buffering 实际是 'loading',对应资源加载),不单独识别会被当成未知状态
+export const IOS_STALLED_STATE = 'buffering'
+
 const mapTrackPlayerState = (state: TPState): UnifiedPlaybackState | null => {
   switch (state) {
     case TPState.Playing:
@@ -19,8 +23,11 @@ const mapTrackPlayerState = (state: TPState): UnifiedPlaybackState | null => {
     case TPState.Ready:
       return 'paused'
     case TPState.None:
-    default:
       return 'idle'
+    default:
+      if ((state as string) == IOS_STALLED_STATE) return 'buffering'
+      // 不认识的状态直接忽略:当成 idle 会触发暂停,弱网下卡顿时按钮和锁屏会在暂停/播放之间来回跳
+      return null
   }
 }
 
