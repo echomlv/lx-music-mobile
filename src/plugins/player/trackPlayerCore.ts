@@ -254,7 +254,8 @@ export const loadTrackPlayerResource = async(musicInfo: LX.Player.PlayMusic, url
   } else {
     await TrackPlayer.pause()
     if (!isTempTrack(track.id as string)) {
-      await seekToTime(time)
+      // 新音轨本就从 0 开始:time 为 0 时跳过 seekToTime,它在 iOS 上会轮询确认位置,至少多等 340ms 才能出声
+      if (time) await seekToTime(time)
       await TrackPlayer.play()
       await applyCurrentVolume()
     }
