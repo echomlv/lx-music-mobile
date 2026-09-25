@@ -73,8 +73,8 @@ const HeaderCard = memo(() => {
       radius="none"
       elevation="none"
       style={{
-        paddingTop: statusBarHeight + tokens.spacing.md,
-        paddingBottom: tokens.spacing.md,
+        paddingTop: statusBarHeight + tokens.spacing.xxxl,
+        paddingBottom: tokens.spacing.xxxl,
         paddingHorizontal: tokens.spacing.md,
         borderBottomLeftRadius: tokens.radius.lg,
         borderBottomRightRadius: tokens.radius.lg,
@@ -89,16 +89,16 @@ const HeaderCard = memo(() => {
           elevation="sm"
           backgroundColor={colors['c-primary-light-200-alpha-500']}
           style={{
-            width: 36,
-            height: 36,
+            width: 48,
+            height: 48,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Icon name="logo" color={colors['c-primary']} size={18} />
+          <Icon name="logo" color={colors['c-primary']} size={24} />
         </Surface>
         <View style={{ flex: 1 }}>
-          <Typography variant="body" weight="700" numberOfLines={1}>LX Music</Typography>
+          <Typography variant="subtitle" weight="700" numberOfLines={1}>LX Music</Typography>
           <Typography variant="caption" color={colors['c-font-label']} numberOfLines={1}>
             洛雪音乐 · iOS
           </Typography>
@@ -139,7 +139,10 @@ export const DrawerNavV2 = memo(() => {
       <HeaderCard />
       <ScrollView
         style={{ flex: 1 }}
+        // 空间足够时菜单在顶部卡片与底部按钮之间垂直居中;不够时(如大字体)从顶部排并可滚动
         contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: 'center',
           paddingHorizontal: tokens.spacing.sm,
           paddingBottom: tokens.spacing.md,
         }}
