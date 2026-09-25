@@ -827,6 +827,18 @@ private let lxTrackPlayerLifecycleNotification = Notification.Name("LXTrackPlaye
       },
     ],
   },
+  // 切歌事件在后台线程异步派发,处理时 JS 可能已从队列中删除了旧音轨,按旧下标读取会越界崩溃(Index out of range)
+  {
+    filePath: 'node_modules/react-native-track-player/ios/RNTrackPlayer/RNTrackPlayer.swift',
+    changes: [
+      {
+        from: `        if let nextIndex = nextIndex {
+            let track = player.items[nextIndex]`,
+        to: `        if let nextIndex = nextIndex, nextIndex >= 0, nextIndex < player.items.count {
+            let track = player.items[nextIndex]`,
+      },
+    ],
+  },
 ]
 
 const patchFile = async({ filePath, changes }) => {
