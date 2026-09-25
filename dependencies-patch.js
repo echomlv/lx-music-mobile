@@ -827,6 +827,36 @@ private let lxTrackPlayerLifecycleNotification = Notification.Name("LXTrackPlaye
       },
     ],
   },
+  // JS 刷新(reload)时旧的 JS 环境被销毁,但旧实例的播放器仍在运行:歌曲播完等回调里继续发事件会触发
+  // RCTEventEmitter 的断言(RCTCallableJSModules is not set),Debug 包直接崩溃。失效时停掉旧播放器并不再发事件
+  {
+    filePath: 'node_modules/react-native-track-player/ios/RNTrackPlayer/RNTrackPlayer.swift',
+    changes: [
+      {
+        from: `    // MARK: - RCTEventEmitter
+`,
+        to: `    // MARK: - Invalidation
+
+    private var lxIsInvalidated = false
+
+    override public func invalidate() {
+        lxIsInvalidated = true
+        super.invalidate()
+        DispatchQueue.main.async { [weak self] in
+            self?.destroy()
+        }
+    }
+
+    override public func sendEvent(withName name: String!, body: Any!) {
+        if lxIsInvalidated { return }
+        super.sendEvent(withName: name, body: body)
+    }
+
+    // MARK: - RCTEventEmitter
+`,
+      },
+    ],
+  },
   // 切歌事件在后台线程异步派发,处理时 JS 可能已从队列中删除了旧音轨,按旧下标读取会越界崩溃(Index out of range)
   {
     filePath: 'node_modules/react-native-track-player/ios/RNTrackPlayer/RNTrackPlayer.swift',
