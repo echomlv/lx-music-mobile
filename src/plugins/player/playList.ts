@@ -100,7 +100,8 @@ export const playMusic = (musicInfo: LX.Player.PlayMusic, url: string, time: num
 // let duration = 0
 const buildDisplayMetadata = (mInfo: LX.Player.MusicInfo, lyric?: string, isPlaying = state.isPlaying) => {
   const isShowNotificationImage = settingState.setting['player.isShowNotificationImage']
-  let artwork = isShowNotificationImage ? mInfo.pic ?? undefined : undefined
+  // 关闭“显示封面”时传空字符串明确清掉封面;封面还没获取到时不传,原生保留当前封面
+  let artwork = isShowNotificationImage ? mInfo.pic ?? undefined : ''
   const fullLyric = getCurrentFullLyric(mInfo.id)
   const shouldShowBluetoothLyric = settingState.setting['player.isShowBluetoothLyric'] && isPlaying && lyric != null
   let name: string

@@ -637,7 +637,21 @@ static void LXApplyNowPlayingArtwork(UIImage *image, NSUInteger requestId) {
   });
 }
 
-static const NSUInteger LXNowPlayingArtworkMaxRetries = 2;
+// 锁屏时网络可能不稳定,多重试几次(间隔 2/4/6/8 秒)
+static const NSUInteger LXNowPlayingArtworkMaxRetries = 4;
+
+// 只编码 URL 中不合法的字符(中文、空格等),已有的 %XX 转义和保留字符原样保留,与 JS 端 Image 组件的处理一致
+static NSURL *LXNowPlayingArtworkURL(NSString *path) {
+  NSURL *url = [NSURL URLWithString:path];
+  if (url != nil) return url;
+  static NSCharacterSet *allowed = nil;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    allowed = [NSCharacterSet characterSetWithCharactersInString:@"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%"];
+  });
+  NSString *encoded = [path stringByAddingPercentEncodingWithAllowedCharacters:allowed];
+  return encoded.length ? [NSURL URLWithString:encoded] : nil;
+}
 
 static void LXDownloadNowPlayingArtwork(NSURL *url, NSUInteger requestId, NSUInteger attempt) {
   LXNowPlayingArtworkTask = [[NSURLSession sharedSession] dataTaskWithURL:url completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
@@ -682,7 +696,7 @@ static void LXSetNowPlayingArtwork(NSString *artworkPath) {
   };
 
   if ([artworkPath hasPrefix:@"http://"] || [artworkPath hasPrefix:@"https://"]) {
-    NSURL *url = [NSURL URLWithString:artworkPath];
+    NSURL *url = LXNowPlayingArtworkURL(artworkPath);
     if (url == nil) return;
     LXDownloadNowPlayingArtwork(url, requestId, 0);
     return;
@@ -812,7 +826,10 @@ static void LXSetNowPlayingInfo(NSDictionary *metadata) {
   NSNumber *duration = [metadata[@"duration"] isKindOfClass:[NSNumber class]] ? metadata[@"duration"] : nil;
   NSNumber *elapsedTime = [metadata[@"elapsedTime"] isKindOfClass:[NSNumber class]] ? metadata[@"elapsedTime"] : nil;
   NSNumber *playbackRate = [metadata[@"playbackRate"] isKindOfClass:[NSNumber class]] ? metadata[@"playbackRate"] : nil;
-  NSString *artworkPath = [metadata[@"artwork"] isKindOfClass:[NSString class]] ? metadata[@"artwork"] : @"";
+  // artwork:传地址 = 设置封面;传空字符串 = 明确不显示封面;不传 = 暂不知道封面,保留当前封面
+  NSString *artworkPath = [metadata[@"artwork"] isKindOfClass:[NSString class]] ? metadata[@"artwork"] : nil;
+  NSString *previousTitle = [info[MPMediaItemPropertyTitle] isKindOfClass:[NSString class]] ? info[MPMediaItemPropertyTitle] : nil;
+  BOOL isNewItem = title != nil && ![title isEqualToString:previousTitle ?: @""];
 
   if (title != nil) info[MPMediaItemPropertyTitle] = title;
   if (artist != nil) info[MPMediaItemPropertyArtist] = artist;
@@ -823,7 +840,11 @@ static void LXSetNowPlayingInfo(NSDictionary *metadata) {
   info[MPNowPlayingInfoPropertyDefaultPlaybackRate] = info[MPNowPlayingInfoPropertyDefaultPlaybackRate] ?: LXNowPlayingDefaultPlaybackRateValue();
 
   LXApplyNowPlayingInfo();
-  LXSetNowPlayingArtwork(artworkPath);
+  // 切歌时 JS 会连续写入多次锁屏信息,封面地址异步获取、有的写入不带封面。若把「不带封面」当作清空,
+  // 会反复取消进行中的封面下载(日志中连续出现 -999),最后一次写入不带封面时整首歌锁屏都没有封面。
+  // 所以不带封面时保留当前封面;只有切到另一首歌时才清掉上一首的封面
+  if (artworkPath != nil) LXSetNowPlayingArtwork(artworkPath);
+  else if (isNewItem) LXSetNowPlayingArtwork(@"");
 }
 
 static UIViewController *LXTopViewController(void) {

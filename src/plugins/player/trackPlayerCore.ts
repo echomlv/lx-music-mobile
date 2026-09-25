@@ -36,7 +36,8 @@ const formatIOSNowPlayingMetadata = (metadata: {
   lyric?: string
 }) => {
   return {
-    title: formatNowPlayingTitleLine(metadata.title, metadata.artist),
+    // 音轨缺歌手时填的是 'Unknow',按空处理,与 buildDisplayMetadata 生成的标题一致(原生靠标题判断是否切歌)
+    title: formatNowPlayingTitleLine(metadata.title, metadata.artist == 'Unknow' ? '' : metadata.artist),
     artist: metadata.lyric ?? '',
     album: '',
     artwork: metadata.artwork,
@@ -150,10 +151,8 @@ export const updateCurrentTrackMetadata = async(metadata: {
     await TrackPlayer.updateMetadataForTrack(currentTrackIndex, metadata).catch(() => {})
   }
   if (Platform.OS == 'ios') {
-    const nowPlayingMetadata: Parameters<typeof updateNowPlayingInfo>[0] = {
-      ...metadata,
-      artwork: metadata.artwork ?? '',
-    }
+    // 不知道封面时不传 artwork(原生保留当前封面);传空字符串会被当作“不显示封面”
+    const nowPlayingMetadata: Parameters<typeof updateNowPlayingInfo>[0] = { ...metadata }
     if (metadata.playbackRate !== undefined) nowPlayingMetadata.playbackRate = metadata.playbackRate
     await updateNowPlayingInfo(nowPlayingMetadata).catch(() => {})
   } else {
@@ -170,10 +169,8 @@ export const updateNowPlayingDisplayMetadata = async(metadata: {
   lyric?: string
 }) => {
   if (Platform.OS == 'ios') {
-    const nowPlayingMetadata: Parameters<typeof updateNowPlayingInfo>[0] = {
-      ...metadata,
-      artwork: metadata.artwork ?? '',
-    }
+    // 不知道封面时不传 artwork(原生保留当前封面);传空字符串会被当作“不显示封面”
+    const nowPlayingMetadata: Parameters<typeof updateNowPlayingInfo>[0] = { ...metadata }
     if (metadata.playbackRate !== undefined) nowPlayingMetadata.playbackRate = metadata.playbackRate
     await updateNowPlayingInfo(nowPlayingMetadata).catch(() => {})
     return
