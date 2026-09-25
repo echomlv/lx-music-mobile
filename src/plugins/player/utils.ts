@@ -255,7 +255,12 @@ export const updateNowPlayingTitles = async(titles: NowPlayingTitles) => {
 
 export const resetPlay = async() => Promise.all([setPause(), setCurrentTime(0)])
 
-export const isCached = async(url: string) => TrackPlayer.isCached(url)
+// iOS 的 RNTrackPlayer 没有实现 isCached(只有 Android 有),直接调用会抛错,
+// 预加载会因此误判地址不可用而重复获取播放地址
+export const isCached = async(url: string) => {
+  if (Platform.OS == 'ios') return false
+  return TrackPlayer.isCached(url).catch(() => false)
+}
 export const getCacheSize = async() => {
   if (Platform.OS == 'ios') {
     if (typeof NativeTrackPlayerModule?.getCacheSize != 'function') return 0
