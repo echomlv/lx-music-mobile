@@ -626,6 +626,7 @@ export const play = () => {
  * 暂停播放
  */
 export const pause = async() => {
+  global.app_event.userPause()
   await setPause()
 }
 

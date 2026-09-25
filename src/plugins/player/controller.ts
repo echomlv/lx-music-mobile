@@ -205,5 +205,11 @@ export const initUnifiedPlayerController = () => {
   })
 
   global.app_event.on('musicToggled', resetRecoveryState)
+  // 加载阶段收到播放器的 paused 时会保留看门狗(可能是地址失效),但主动暂停必须清掉,
+  // 否则 25 秒后看门狗刷新地址并自动 play(),用户已暂停的歌曲会自己开始播放
+  global.app_event.on('userPause', () => {
+    isLoadingPhase = false
+    clearLoadingTimeout()
+  })
   isInitialized = true
 }

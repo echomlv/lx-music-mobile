@@ -45,6 +45,13 @@ export class AppEvent extends Event {
   }
 
   /**
+   * 主动要求暂停(界面、锁屏/耳机、深链接、音频打断、定时退出),区别于播放器自身上报的暂停状态
+   */
+  userPause() {
+    this.emit('userPause')
+  }
+
+  /**
    * 手动改变进度
    * @param progress 进度
    */
